@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
@@ -42,7 +44,17 @@ dependencies {
 
     // OCR library
     implementation 'com.github.adaptech-cz:tesseract4android:2.1.1'
-    implementation project(path: ':opencv-4.5.2')
+
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1"
+
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.1"
+
+    implementation "com.google.dagger:hilt-android:2.37"
+    kapt "com.google.dagger:hilt-android-compiler:2.37"
 
     testImplementation 'junit:junit:4.+'
 

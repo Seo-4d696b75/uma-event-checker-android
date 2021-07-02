@@ -1,6 +1,7 @@
 package jp.seo.uma.eventchecker
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -20,6 +21,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val intent = Intent(this, CheckerService::class.java)
+        startForegroundService(intent)
+
+        return
 
         val dir = File(applicationContext.filesDir, OCR_DATA_DIR)
         if (!dir.exists() || !dir.isDirectory) {
