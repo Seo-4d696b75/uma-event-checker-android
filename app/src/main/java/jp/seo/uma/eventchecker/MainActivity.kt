@@ -1,8 +1,11 @@
 package jp.seo.uma.eventchecker
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import com.googlecode.tesseract.android.TessBaseAPI
 import java.io.File
 import java.io.FileOutputStream
@@ -27,7 +30,21 @@ class MainActivity : AppCompatActivity() {
         val file = File(dir, OCR_TRAINED_DATA)
         copyAssetsToFiles(applicationContext, OCR_TRAINED_DATA, file)
         val api = TessBaseAPI()
-        val init = api.init(filesDir.toString(), "jpn")
+        if (!api.init(filesDir.toString(), "jpn")) {
+            throw RuntimeException("fail to ocr client")
+        }
+
+        val image = findViewById<ImageView>(R.id.image_ocr)
+        val ocrText = findViewById<TextView>(R.id.text_ocr)
+
+        val bitmap = BitmapFactory.decodeStream(assets.open("test.png"))
+        image.setImageBitmap(bitmap)
+
+        api.setImage(bitmap)
+        val text = api.utF8Text
+
+        ocrText.text = text
+
         api.end()
     }
 
