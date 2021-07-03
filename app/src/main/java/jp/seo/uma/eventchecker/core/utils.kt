@@ -11,6 +11,7 @@ import androidx.annotation.DimenRes
 import androidx.annotation.IdRes
 import org.opencv.android.Utils
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 import java.io.File
 import java.io.FileOutputStream
 
@@ -41,6 +42,12 @@ fun AssetManager.getBitmap(path: String): Bitmap {
 fun Bitmap.toMat(): Mat {
     val mat = Mat()
     Utils.bitmapToMat(this, mat)
+    return mat
+}
+
+fun Bitmap.toGrayMat(): Mat {
+    val mat = toMat()
+    Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2GRAY)
     return mat
 }
 

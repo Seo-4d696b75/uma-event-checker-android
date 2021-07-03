@@ -24,6 +24,10 @@ abstract class TemplateDetector(
     private val threshold: Float
 ) {
 
+    open fun convertColor(src: Mat): Mat {
+        return src
+    }
+
     fun detect(img: Bitmap): Boolean {
         val src = img.toMat()
         val width = src.width().toFloat()
@@ -46,7 +50,7 @@ abstract class TemplateDetector(
             resized.height() - template.height() + 1,
             CvType.CV_32FC1
         )
-        Imgproc.matchTemplate(resized, template, result, Imgproc.TM_CCOEFF_NORMED)
+        Imgproc.matchTemplate(convertColor(resized), template, result, Imgproc.TM_CCOEFF_NORMED)
         val mm = Core.minMaxLoc(result)
         return mm.maxVal > threshold
     }
@@ -61,3 +65,21 @@ class GameHeaderDetector(context: Context) : TemplateDetector(
     context.resources.readFloat(R.dimen.template_game_header_origin),
     context.resources.readFloat(R.dimen.template_game_header_threshold)
 )
+
+class EventTypeDetector(template: Mat, context: Context) : TemplateDetector(
+    template,
+    context.resources.readFloat(R.dimen.template_event_type_sampling_x),
+    context.resources.readFloat(R.dimen.template_event_type_sampling_y),
+    context.resources.readFloat(R.dimen.template_event_type_sampling_width),
+    context.resources.readFloat(R.dimen.template_event_type_sampling_height),
+    context.resources.readFloat(R.dimen.template_event_type_origin),
+    context.resources.readFloat(R.dimen.template_event_type_threshold)
+) {
+    override fun convertColor(src: Mat): Mat {
+        val gray = Mat()
+        Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY)
+        val th = Mat()
+        Imgproc.threshold(gray, th, 220.0, 255.0, Imgproc.THRESH_BINARY_INV)
+        return th
+    }
+}

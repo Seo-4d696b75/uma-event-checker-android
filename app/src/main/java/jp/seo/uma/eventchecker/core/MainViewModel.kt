@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import com.googlecode.tesseract.android.TessBaseAPI
+import jp.seo.uma.eventchecker.img.EventTypeDetector
 import jp.seo.uma.eventchecker.img.GameHeaderDetector
 import jp.seo.uma.eventchecker.img.TemplateDetector
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,9 @@ class MainViewModel : ViewModel() {
     private lateinit var ocrApi: TessBaseAPI
 
     private lateinit var headerDetector: TemplateDetector
+    private lateinit var charaEventDetector: EventTypeDetector
+    private lateinit var supportEventDetector: EventTypeDetector
+    private lateinit var mainEventTypeDetector: EventTypeDetector
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
@@ -59,9 +63,20 @@ class MainViewModel : ViewModel() {
         _loading.value = true
         loadData(context)
         headerDetector = GameHeaderDetector(context)
+        charaEventDetector = EventTypeDetector(
+            context.assets.getBitmap("template/event_chara.png").toGrayMat(),
+            context
+        )
+        supportEventDetector = EventTypeDetector(
+            context.assets.getBitmap("template/event_support.png").toGrayMat(),
+            context
+        )
+        mainEventTypeDetector = EventTypeDetector(
+            context.assets.getBitmap("template/event_main.png").toGrayMat(),
+            context
+        )
         hasInitialized = true
         _loading.value = false
-        testImage(context)
     }
 
     private suspend fun loadData(context: Context) = withContext(Dispatchers.IO) {
@@ -83,7 +98,7 @@ class MainViewModel : ViewModel() {
 
     private fun testImage(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val src = context.assets.getBitmap("test_game_1.jpg")
+            val src = context.assets.getBitmap("test_game_2.jpg")
             val detect = headerDetector.detect(src)
             Log.d("Header", "detect: $detect")
         }
@@ -94,44 +109,40 @@ class MainViewModel : ViewModel() {
     private var latestBitmap: Bitmap? = null
     private var processRunning: Boolean = false
 
-    fun updateScreen(img: Bitmap) = viewModelScope.launch {
-        var run = updateMutex.withLock {
-            if (processRunning) {
-                Log.d("ViewModel", "update running")
-                latestBitmap = img
-                false
-            } else {
-                Log.d("ViewModel", "update start")
-                processRunning = true
-                latestBitmap = null
-                true
-            }
+    fun updateScreen(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
+        if (processRunning) {
+            latestBitmap = img
+            return@launch
         }
-        var bitmap = img
-        while (run) {
-            update(bitmap)
-            // keep min interval
-            delay(1000L)
-            run = updateMutex.withLock {
-                val latest = latestBitmap
-                if (latest == null) {
-                    Log.d("ViewModel", "update stop")
-                    processRunning = false
-                    false
-                } else {
-                    Log.d("ViewModel", "update continue")
-                    bitmap = latest
-                    latestBitmap = null
-                    true
-                }
-            }
+        processRunning = true
+        var bitmap: Bitmap? = img
+        while (bitmap != null) {
+            update(img)
+            delay(500L)
+            bitmap = latestBitmap
+            latestBitmap = null
         }
-
+        processRunning = false
     }
 
-    private suspend fun update(img: Bitmap) = withContext(Dispatchers.IO) {
-        Log.d("ViewModel", "update")
-        delay(100L)
+    private fun update(img: Bitmap) {
+        Log.d("update", "start...")
+        val isGame = headerDetector.detect(img)
+        Log.d("update", "isGame $isGame")
+        if (!isGame) return
+        val type = detectEventType(img)
+        Log.d("update", "event type is '${type.toString()}'")
+    }
+
+    private enum class EventType {
+        Main, Chara, Support
+    }
+
+    private fun detectEventType(img: Bitmap): EventType? {
+        if (charaEventDetector.detect(img)) return EventType.Chara
+        if (supportEventDetector.detect(img)) return EventType.Support
+        if (mainEventTypeDetector.detect(img)) return EventType.Main
+        return null
     }
 
     fun setOcrImage(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {

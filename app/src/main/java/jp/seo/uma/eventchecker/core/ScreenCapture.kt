@@ -37,8 +37,8 @@ class ScreenCapture @Inject constructor(
     private var screenHeight: Int = 0
     private var statusBarHeight: Int = 0
     private var navigationBarHeight: Int = 0
-    
-    fun setMetrics(windowManager: WindowManager){
+
+    fun setMetrics(windowManager: WindowManager) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val metric = windowManager.currentWindowMetrics
@@ -87,25 +87,24 @@ class ScreenCapture @Inject constructor(
     override fun onImageAvailable(reader: ImageReader?) {
         reader?.let { r ->
             val images = r.acquireLatestImage()
-            context.resources.displayMetrics.let { metric ->
-                images.planes[0].let { img ->
-                    val bitmap = Bitmap.createBitmap(
-                        img.rowStride / img.pixelStride,
-                        screenHeight,
-                        Bitmap.Config.ARGB_8888
-                    )
-                    bitmap.copyPixelsFromBuffer(img.buffer)
-                    images.close()
-                    val crop = Bitmap.createBitmap(
-                        bitmap,
-                        0,
-                        statusBarHeight,
-                        screenWidth,
-                        screenHeight - statusBarHeight - navigationBarHeight
-                    )
-                    bitmap.recycle()
-                    _screen.postValue(crop)
-                }
+            if (images == null || images.planes.isEmpty()) return@let
+            images.planes[0].let { img ->
+                val bitmap = Bitmap.createBitmap(
+                    img.rowStride / img.pixelStride,
+                    screenHeight,
+                    Bitmap.Config.ARGB_8888
+                )
+                bitmap.copyPixelsFromBuffer(img.buffer)
+                images.close()
+                val crop = Bitmap.createBitmap(
+                    bitmap,
+                    0,
+                    statusBarHeight,
+                    screenWidth,
+                    screenHeight - statusBarHeight - navigationBarHeight
+                )
+                bitmap.recycle()
+                _screen.postValue(crop)
             }
         }
     }
