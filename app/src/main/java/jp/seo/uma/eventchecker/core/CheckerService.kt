@@ -5,10 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
@@ -32,6 +31,9 @@ class CheckerService : LifecycleService() {
     @Inject
     lateinit var store: ViewModelStore
 
+    @Inject
+    lateinit var capture: ScreenCapture
+
     private val viewModel: MainViewModel by lazy {
         MainViewModel.getInstance(store)
     }
@@ -41,7 +43,10 @@ class CheckerService : LifecycleService() {
         intent?.let {
             if (it.hasExtra(KEY_REQUEST)) {
                 when (it.getStringExtra(KEY_REQUEST)) {
-                    REQUEST_EXIT_SERVICE -> stopSelf()
+                    REQUEST_EXIT_SERVICE -> {
+                        stopSelf()
+                        capture.release()
+                    }
                 }
             }
         }
@@ -75,5 +80,9 @@ class CheckerService : LifecycleService() {
                 .addAction(R.drawable.ic_launcher_foreground, "stop", pending)
                 .build()
         startForeground(NOTIFICATION_TAG, notification)
+
+        capture.screen.observe(this){
+            viewModel.updateScreen(it)
+        }
     }
 }

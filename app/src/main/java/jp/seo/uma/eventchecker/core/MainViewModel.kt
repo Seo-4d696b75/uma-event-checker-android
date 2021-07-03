@@ -3,11 +3,15 @@ package jp.seo.uma.eventchecker.core
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -20,15 +24,16 @@ class MainViewModel : ViewModel() {
     companion object {
         const val OCR_DATA_DIR = "tessdata"
         const val OCR_TRAINED_DATA = "jpn.traineddata"
-        val factory = object : ViewModelProvider.Factory {
-            @SuppressWarnings("unchecked_cast")
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                val obj = MainViewModel()
-                return obj as T
-            }
-        }
+
 
         fun getInstance(store: ViewModelStore): MainViewModel {
+            val factory = object : ViewModelProvider.Factory {
+                @SuppressWarnings("unchecked_cast")
+                override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                    val obj = MainViewModel()
+                    return obj as T
+                }
+            }
             return ViewModelProvider({ store }, factory).get(MainViewModel::class.java)
         }
     }
@@ -78,10 +83,55 @@ class MainViewModel : ViewModel() {
 
     }
 
+    private val updateMutex = Mutex()
+    private var latestBitmap: Bitmap? = null
+    private var processRunning: Boolean = false
+
+    fun updateScreen(img: Bitmap) = viewModelScope.launch {
+        var run = updateMutex.withLock {
+            if (processRunning) {
+                Log.d("ViewModel", "update running")
+                latestBitmap = img
+                false
+            } else {
+                Log.d("ViewModel", "update start")
+                processRunning = true
+                latestBitmap = null
+                true
+            }
+        }
+        var bitmap = img
+        while (run) {
+            update(bitmap)
+            // keep min interval
+            delay(1000L)
+            run = updateMutex.withLock {
+                val latest = latestBitmap
+                if (latest == null) {
+                    Log.d("ViewModel", "update stop")
+                    processRunning = false
+                    false
+                } else {
+                    Log.d("ViewModel", "update continue")
+                    bitmap = latest
+                    latestBitmap = null
+                    true
+                }
+            }
+        }
+
+    }
+
+    private suspend fun update(img: Bitmap) = withContext(Dispatchers.IO) {
+        Log.d("ViewModel", "update")
+        delay(100L)
+    }
+
     fun setOcrImage(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
         ocrApi.setImage(img)
         val text = ocrApi.utF8Text
         _ocrText.postValue(text.replace(Regex("[\\s　]+"), ""))
     }
+
 
 }
