@@ -1,6 +1,16 @@
 package jp.seo.uma.eventchecker.core
 
 import android.content.Context
+import android.content.res.AssetManager
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Build
+import android.util.TypedValue
+import androidx.annotation.DimenRes
+import androidx.annotation.IdRes
+import org.opencv.android.Utils
+import org.opencv.core.Mat
 import java.io.File
 import java.io.FileOutputStream
 
@@ -21,5 +31,25 @@ fun copyAssetsToFiles(context: Context, src: String, dst: File) {
             }
             writer.flush()
         }
+    }
+}
+
+fun AssetManager.getBitmap(path: String): Bitmap {
+    return BitmapFactory.decodeStream(open(path))
+}
+
+fun Bitmap.toMat(): Mat {
+    val mat = Mat()
+    Utils.bitmapToMat(this, mat)
+    return mat
+}
+
+fun Resources.readFloat(@DimenRes id: Int): Float {
+    return if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+        this.getFloat(id)
+    } else{
+        val value = TypedValue()
+        this.getValue(id, value, true)
+        value.float
     }
 }

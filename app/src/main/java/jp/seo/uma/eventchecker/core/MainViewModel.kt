@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import com.googlecode.tesseract.android.TessBaseAPI
+import jp.seo.uma.eventchecker.img.GameHeaderDetector
+import jp.seo.uma.eventchecker.img.TemplateDetector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,14 +51,17 @@ class MainViewModel : ViewModel() {
     private var hasInitialized = false
     private lateinit var ocrApi: TessBaseAPI
 
+    private lateinit var headerDetector: TemplateDetector
+
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
         if (hasInitialized) return@launch
         _loading.value = true
         loadData(context)
-        testImage(context)
+        headerDetector = GameHeaderDetector(context)
         hasInitialized = true
         _loading.value = false
+        testImage(context)
     }
 
     private suspend fun loadData(context: Context) = withContext(Dispatchers.IO) {
@@ -77,9 +82,11 @@ class MainViewModel : ViewModel() {
     }
 
     private fun testImage(context: Context) {
-        val img = BitmapFactory.decodeStream(context.assets.open("test.png"))
-        _bitmap.postValue(img)
-        setOcrImage(img)
+        viewModelScope.launch(Dispatchers.IO) {
+            val src = context.assets.getBitmap("test_game_1.jpg")
+            val detect = headerDetector.detect(src)
+            Log.d("Header", "detect: $detect")
+        }
 
     }
 

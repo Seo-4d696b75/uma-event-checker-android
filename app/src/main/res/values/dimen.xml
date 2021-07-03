@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="dimen" format="float" name="template_game_header_sampling_x">0.0</item>
+    <item type="dimen" format="float" name="template_game_header_sampling_width">0.1619</item>
+    <item type="dimen" format="float" name="template_game_header_sampling_y">0.0</item>
+    <item type="dimen" format="float" name="template_game_header_sampling_height">0.057143</item>
+    <item type="dimen" format="float" name="template_game_header_origin">525</item>
+    <item type="dimen" format="float" name="template_game_header_threshold">0.7</item>
+</resources>

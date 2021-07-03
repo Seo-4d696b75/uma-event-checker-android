@@ -22,6 +22,9 @@ import jp.seo.uma.eventchecker.core.CheckerService
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.MainViewModel
 import jp.seo.uma.eventchecker.core.ScreenCapture
+import org.opencv.android.BaseLoaderCallback
+import org.opencv.android.LoaderCallbackInterface
+import org.opencv.android.OpenCVLoader
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -43,6 +46,23 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var projectionManager: MediaProjectionManager
 
+    private val openCvCallback by lazy {
+        object : BaseLoaderCallback(applicationContext) {
+            override fun onManagerConnected(status: Int) {
+                if (status == LoaderCallbackInterface.SUCCESS) {
+                    viewModel.init(applicationContext)
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        "fail to get OpenCV library",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -54,8 +74,6 @@ class MainActivity : AppCompatActivity() {
         val ocrText = findViewById<TextView>(R.id.text_ocr)
         val progress = findViewById<View>(R.id.progres_main)
 
-        viewModel.init(this)
-
         viewModel.ocrText.observe(this) {
             ocrText.text = it
         }
@@ -66,6 +84,7 @@ class MainActivity : AppCompatActivity() {
             image.setImageBitmap(it)
         }
 
+        // init MediaProjection API
         if (!capture.initialized) {
             projectionManager =
                 getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -74,6 +93,13 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_CAPTURE
             )
             capture.setMetrics(windowManager)
+        }
+
+        // check OpenCV and init ViewModel
+        if (OpenCVLoader.initDebug()) {
+            openCvCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+        } else {
+            OpenCVLoader.initAsync("4.5.2", applicationContext, openCvCallback)
         }
 
     }
