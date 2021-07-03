@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker
+package jp.seo.uma.eventchecker.core
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,11 +7,18 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import dagger.hilt.android.AndroidEntryPoint
+import jp.seo.uma.eventchecker.R
+import javax.inject.Inject
 
 /**
  * @author Seo-4d696b75
  * @version 2021/07/02.
  */
+@AndroidEntryPoint
 class CheckerService : LifecycleService() {
 
     companion object {
@@ -20,6 +27,13 @@ class CheckerService : LifecycleService() {
 
         const val KEY_REQUEST = "request"
         const val REQUEST_EXIT_SERVICE = "exit"
+    }
+
+    @Inject
+    lateinit var store: ViewModelStore
+
+    private val viewModel: MainViewModel by lazy {
+        MainViewModel.getInstance(store)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
