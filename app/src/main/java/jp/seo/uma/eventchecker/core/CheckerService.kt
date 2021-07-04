@@ -84,5 +84,9 @@ class CheckerService : LifecycleService() {
         capture.callback = {
             viewModel.updateScreen(it)
         }
+
+        viewModel.currentEvent.observe(this) {
+            Log.d("event", it?.eventTitle ?: "none")
+        }
     }
 }

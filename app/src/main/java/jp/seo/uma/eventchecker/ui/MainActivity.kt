@@ -2,24 +2,17 @@ package jp.seo.uma.eventchecker.ui
 
 import android.app.Service
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.graphics.Point
-import android.graphics.Rect
 import android.media.projection.MediaProjectionManager
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
-import jp.seo.uma.eventchecker.core.CheckerService
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.core.CheckerService
 import jp.seo.uma.eventchecker.core.MainViewModel
 import jp.seo.uma.eventchecker.core.ScreenCapture
 import org.opencv.android.BaseLoaderCallback
@@ -74,14 +67,8 @@ class MainActivity : AppCompatActivity() {
         val ocrText = findViewById<TextView>(R.id.text_ocr)
         val progress = findViewById<View>(R.id.progres_main)
 
-        viewModel.ocrText.observe(this) {
-            ocrText.text = it
-        }
         viewModel.loading.observe(this) {
             progress.visibility = if (it) View.VISIBLE else View.GONE
-        }
-        viewModel.bitmap.observe(this) {
-            image.setImageBitmap(it)
         }
 
         // init MediaProjection API

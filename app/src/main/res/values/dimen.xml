@@ -21,4 +21,6 @@
     <item type="dimen" format="float" name="ocr_title_sampling_width">0.55</item>
     <item type="dimen" format="float" name="ocr_title_sampling_y">0.33</item>
     <item type="dimen" format="float" name="ocr_title_sampling_height">0.065</item>
+
+    <item type="dimen" format="float" name="ocr_title_threshold">0.5</item>
 </resources>
