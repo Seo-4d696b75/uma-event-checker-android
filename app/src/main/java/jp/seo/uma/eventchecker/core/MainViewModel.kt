@@ -7,15 +7,14 @@ import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import com.googlecode.tesseract.android.TessBaseAPI
-import jp.seo.uma.eventchecker.img.EventTypeDetector
-import jp.seo.uma.eventchecker.img.GameHeaderDetector
-import jp.seo.uma.eventchecker.img.TemplateDetector
+import jp.seo.uma.eventchecker.img.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.opencv.core.Mat
 import java.io.File
 
 /**
@@ -56,6 +55,7 @@ class MainViewModel : ViewModel() {
     private lateinit var charaEventDetector: EventTypeDetector
     private lateinit var supportEventDetector: EventTypeDetector
     private lateinit var mainEventTypeDetector: EventTypeDetector
+    private lateinit var eventTitleCropper: EventTitleProcess
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
@@ -75,6 +75,7 @@ class MainViewModel : ViewModel() {
             context.assets.getBitmap("template/event_main.png").toGrayMat(),
             context
         )
+        eventTitleCropper = EventTitleProcess(context)
         hasInitialized = true
         _loading.value = false
     }
@@ -105,12 +106,12 @@ class MainViewModel : ViewModel() {
 
     }
 
-    private val updateMutex = Mutex()
     private var latestBitmap: Bitmap? = null
     private var processRunning: Boolean = false
 
     fun updateScreen(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
         if (processRunning) {
+            latestBitmap?.recycle()
             latestBitmap = img
             return@launch
         }
@@ -126,12 +127,14 @@ class MainViewModel : ViewModel() {
     }
 
     private fun update(img: Bitmap) {
-        Log.d("update", "start...")
         val isGame = headerDetector.detect(img)
-        Log.d("update", "isGame $isGame")
+        Log.d("update", "target $isGame")
         if (!isGame) return
         val type = detectEventType(img)
-        Log.d("update", "event type is '${type.toString()}'")
+        Log.d("update", "event type '${type.toString()}'")
+        if (type == null) return
+        val title = getEventTitle(img)
+        Log.d("update", "event title '$title'")
     }
 
     private enum class EventType {
@@ -145,11 +148,14 @@ class MainViewModel : ViewModel() {
         return null
     }
 
-    fun setOcrImage(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
-        ocrApi.setImage(img)
-        val text = ocrApi.utF8Text
-        _ocrText.postValue(text.replace(Regex("[\\s　]+"), ""))
+    private fun getEventTitle(img: Bitmap): String {
+        val target = eventTitleCropper.preProcess(img)
+        return extractText(target)
     }
 
-
+    private fun extractText(img: Bitmap): String {
+        ocrApi.setImage(img)
+        val text = ocrApi.utF8Text
+        return text.replace(Regex("[\\s　]+"), "")
+    }
 }

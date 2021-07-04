@@ -81,8 +81,7 @@ class CheckerService : LifecycleService() {
                 .build()
         startForeground(NOTIFICATION_TAG, notification)
 
-        capture.screen.observe(this){
-            Log.d("Service", "captured")
+        capture.callback = {
             viewModel.updateScreen(it)
         }
     }

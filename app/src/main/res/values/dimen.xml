@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item type="dimen" format="float" name="screen_capture_scale">0.5</item>
+
     <item type="dimen" format="float" name="template_game_header_sampling_x">0.0</item>
     <item type="dimen" format="float" name="template_game_header_sampling_width">0.1619</item>
     <item type="dimen" format="float" name="template_game_header_sampling_y">0.0</item>
@@ -13,4 +15,10 @@
     <item type="dimen" format="float" name="template_event_type_sampling_height">0.0311</item>
     <item type="dimen" format="float" name="template_event_type_origin">546</item>
     <item type="dimen" format="float" name="template_event_type_threshold">0.7</item>
+
+
+    <item type="dimen" format="float" name="ocr_title_sampling_x">0.16</item>
+    <item type="dimen" format="float" name="ocr_title_sampling_width">0.55</item>
+    <item type="dimen" format="float" name="ocr_title_sampling_y">0.33</item>
+    <item type="dimen" format="float" name="ocr_title_sampling_height">0.065</item>
 </resources>

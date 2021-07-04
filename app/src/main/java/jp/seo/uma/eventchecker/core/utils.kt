@@ -51,6 +51,15 @@ fun Bitmap.toGrayMat(): Mat {
     return mat
 }
 
+fun Mat.toBitmap(): Bitmap {
+    val bitmap = Bitmap.createBitmap(
+        width(), height(),
+        Bitmap.Config.ARGB_8888
+    )
+    Utils.matToBitmap(this, bitmap)
+    return bitmap
+}
+
 fun Resources.readFloat(@DimenRes id: Int): Float {
     return if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
         this.getFloat(id)

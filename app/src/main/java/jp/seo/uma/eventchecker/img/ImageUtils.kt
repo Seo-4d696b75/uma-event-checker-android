@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.getBitmap
 import jp.seo.uma.eventchecker.core.readFloat
+import jp.seo.uma.eventchecker.core.toBitmap
 import jp.seo.uma.eventchecker.core.toMat
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -14,21 +15,14 @@ import kotlin.math.round
  * @author Seo-4d696b75
  * @version 2021/07/03.
  */
-abstract class TemplateDetector(
-    private val template: Mat,
+
+open class ScreenCropper(
     private val samplingX: Float,
     private val samplingY: Float,
     private val samplingW: Float,
-    private val samplingH: Float,
-    private val originW: Float,
-    private val threshold: Float
+    private val samplingH: Float
 ) {
-
-    open fun convertColor(src: Mat): Mat {
-        return src
-    }
-
-    fun detect(img: Bitmap): Boolean {
+    open fun crop(img: Bitmap): Mat {
         val src = img.toMat()
         val width = src.width().toFloat()
         val rect = Rect(
@@ -37,7 +31,49 @@ abstract class TemplateDetector(
             (width * samplingW).toInt(),
             (width * samplingH).toInt()
         )
-        val crop = Mat(src, rect)
+        return Mat(src, rect)
+    }
+}
+
+class EventTitleProcess(context: Context): ScreenCropper(
+    context.resources.readFloat(R.dimen.ocr_title_sampling_x),
+    context.resources.readFloat(R.dimen.ocr_title_sampling_y),
+    context.resources.readFloat(R.dimen.ocr_title_sampling_width),
+    context.resources.readFloat(R.dimen.ocr_title_sampling_height)
+) {
+    fun preProcess(img: Bitmap): Bitmap {
+        val crop = crop(img)
+        val gray = Mat()
+        Imgproc.cvtColor(crop, gray, Imgproc.COLOR_BGR2GRAY)
+        val size = Size(
+            gray.width() * 2.0,
+            gray.height() * 2.0
+        )
+        Imgproc.resize(gray, gray, size, 0.0, 0.0, Imgproc.INTER_CUBIC)
+        Imgproc.threshold(gray, gray, 220.0, 255.0, Imgproc.THRESH_BINARY_INV)
+        return gray.toBitmap()
+    }
+}
+
+abstract class TemplateDetector(
+    private val template: Mat,
+    samplingX: Float,
+    samplingY: Float,
+    samplingW: Float,
+    samplingH: Float,
+    private val originW: Float,
+    private val threshold: Float
+) : ScreenCropper(
+    samplingX, samplingY, samplingW, samplingH
+) {
+
+    open fun convertColor(src: Mat): Mat {
+        return src
+    }
+
+    fun detect(img: Bitmap): Boolean {
+        val width = img.width.toFloat()
+        val crop = crop(img)
         val scale = originW / width
         val size = Size(
             round(crop.width() * scale).toDouble(),
