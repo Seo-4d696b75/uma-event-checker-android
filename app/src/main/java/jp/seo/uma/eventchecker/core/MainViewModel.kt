@@ -2,8 +2,10 @@ package jp.seo.uma.eventchecker.core
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.MainThread
+import androidx.core.os.HandlerCompat
 import androidx.lifecycle.*
 import com.googlecode.tesseract.android.TessBaseAPI
 import jp.seo.uma.eventchecker.R
@@ -41,7 +43,8 @@ class MainViewModel : ViewModel() {
 
     val loading: LiveData<Boolean> = _loading
 
-    private var ocrText: String? = null
+    private var _ocrText: String? = null
+    val ocrText = MutableLiveData<String?>(null)
 
     private var hasInitialized = false
     private lateinit var ocrApi: TessBaseAPI
@@ -53,9 +56,10 @@ class MainViewModel : ViewModel() {
     private lateinit var mainEventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
 
-
     private lateinit var events: Array<GameEvent>
     val currentEvent = MutableLiveData<GameEvent?>(null)
+    var eventCallback: ((GameEvent?) -> Unit)? = null
+    private val handler = HandlerCompat.createAsync(Looper.getMainLooper())
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
@@ -115,26 +119,26 @@ class MainViewModel : ViewModel() {
     }
 
     private var latestBitmap: Bitmap? = null
+
+    @Volatile
     private var processRunning: Boolean = false
 
     fun updateScreen(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
+        if (!hasInitialized) return@launch
+
+
         if (processRunning) {
-            latestBitmap?.recycle()
-            latestBitmap = img
+            //latestBitmap?.recycle()
+            //latestBitmap = img
+            Log.d("update", "skip")
             return@launch
         }
         processRunning = true
-        var bitmap: Bitmap? = img
-        while (bitmap != null) {
-            update(img)
-            delay(500L)
-            bitmap = latestBitmap
-            latestBitmap = null
-        }
+        update(img)
         processRunning = false
     }
 
-    private suspend fun update(img: Bitmap) {
+    private fun update(img: Bitmap) {
         val isGame = headerDetector.detect(img)
         Log.d("update", "target $isGame")
         if (isGame) {
@@ -143,16 +147,28 @@ class MainViewModel : ViewModel() {
             if (type != null) {
                 val title = getEventTitle(img)
                 Log.d("update", "event title '$title'")
-                val latest = ocrText
+                val latest = _ocrText
                 if (latest != title) {
-                    ocrText = title
-                    currentEvent.postValue(searchEventTitle(title))
+                    _ocrText = title
+                    val event = searchEventTitle(title)
+                    val r = handler.post {
+                        Log.d("update", "post")
+                        eventCallback?.invoke(event)
+                        currentEvent.value = event
+                        ocrText.value = title
+                    }
+                    if (!r) Log.e("update", "fail to post event")
                 }
                 return
             }
         }
-        ocrText = null
-        currentEvent.postValue(null)
+        _ocrText = null
+        val r = handler.post {
+            Log.d("update", "post null")
+            ocrText.value = null
+            currentEvent.value = null
+        }
+        if (!r) Log.e("update", "fail to post null")
     }
 
     private enum class EventType {
@@ -177,7 +193,7 @@ class MainViewModel : ViewModel() {
         return text.replace(Regex("[\\s　]+"), "")
     }
 
-    private suspend fun searchEventTitle(title: String): GameEvent? {
+    private fun searchEventTitle(title: String): GameEvent? {
         val score = Array<Float>(events.size) { 0f }
         calcTitleDistance(0, events.size, title, score)
         return score.maxOrNull()?.let { maxScore ->
@@ -195,22 +211,22 @@ class MainViewModel : ViewModel() {
                 )
                 null
             }
-        } ?: throw NoSuchElementException("event list is empty")
+        }
     }
 
-    private suspend fun calcTitleDistance(start: Int, end: Int, query: String, dst: Array<Float>) {
+    private fun calcTitleDistance(start: Int, end: Int, query: String, dst: Array<Float>) {
         if (start + 32 < end) {
             val mid = start + (end - start) / 2
-            viewModelScope.apply {
-                val left = async(Dispatchers.IO) {
-                    calcTitleDistance(start, mid, query, dst)
-                }
-                val right = async(Dispatchers.IO) {
-                    calcTitleDistance(mid, end, query, dst)
-                }
-                left.await()
-                right.await()
-            }
+            //viewModelScope.apply {
+            //   val left = async(Dispatchers.IO) {
+            calcTitleDistance(start, mid, query, dst)
+            // }
+            //val right = async(Dispatchers.IO) {
+            calcTitleDistance(mid, end, query, dst)
+            //}
+            //left.await()
+            //right.await()
+            //}
         } else {
             val algo = LevensteinDistance()
             (start until end).forEach { idx ->

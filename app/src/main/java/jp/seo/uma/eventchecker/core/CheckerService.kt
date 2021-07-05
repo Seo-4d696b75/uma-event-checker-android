@@ -5,7 +5,15 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.PixelFormat
+import android.os.Binder
+import android.os.IBinder
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
+import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
@@ -19,6 +27,30 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class CheckerService : LifecycleService() {
+
+
+    inner class StationServiceBinder : Binder() {
+        fun bind(): CheckerService {
+            return this@CheckerService
+        }
+    }
+
+    override fun onBind(intent: Intent): IBinder {
+        super.onBind(intent)
+        Log.d("service", "onBind: client requests to bind service")
+        return StationServiceBinder()
+    }
+
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.d("service", "onUnbind: client unbinds service")
+        return true
+    }
+
+    override fun onRebind(intent: Intent?) {
+        Log.d("service", "onRebind: client binds service again")
+    }
+
 
     companion object {
         const val NOTIFICATION_TAG = 564
@@ -34,6 +66,10 @@ class CheckerService : LifecycleService() {
     @Inject
     lateinit var capture: ScreenCapture
 
+    private lateinit var manager: WindowManager
+    private var view: View? = null
+    private var eventText: TextView? = null
+
     private val viewModel: MainViewModel by lazy {
         MainViewModel.getInstance(store)
     }
@@ -44,13 +80,13 @@ class CheckerService : LifecycleService() {
             if (it.hasExtra(KEY_REQUEST)) {
                 when (it.getStringExtra(KEY_REQUEST)) {
                     REQUEST_EXIT_SERVICE -> {
+                        release()
                         stopSelf()
-                        capture.release()
                     }
                 }
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onCreate() {
@@ -85,8 +121,47 @@ class CheckerService : LifecycleService() {
             viewModel.updateScreen(it)
         }
 
-        viewModel.currentEvent.observe(this) {
-            Log.d("event", it?.eventTitle ?: "none")
+        manager = getSystemService(WINDOW_SERVICE) as WindowManager
+
+        initView(applicationContext)
+
+        viewModel.currentEvent.observe(this) { event ->
+            Log.d("service", event?.eventTitle ?: "none")
+            eventText?.let {
+                it.text = event?.toString()
+                it.invalidate()
+            }
         }
+    }
+
+    private fun initView(context: Context) {
+
+        val inflater = LayoutInflater.from(context)
+        val layerType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        val layoutParam = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            0, 0, layerType,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            PixelFormat.TRANSLUCENT
+        )
+        layoutParam.gravity = Gravity.TOP.or(Gravity.END)
+        layoutParam.screenBrightness = -1f
+        val view = inflater.inflate(R.layout.overlay_main, null, false)
+        view.visibility = View.VISIBLE
+        this.view = view
+        this.eventText = view.findViewById(R.id.text_overlay)
+        manager.addView(view, layoutParam)
+    }
+
+    private fun release() {
+        capture.release()
+        eventText = null
+        view?.let {
+            manager.removeView(it)
+            view = null
+        }
+        viewModel.eventCallback = null
     }
 }

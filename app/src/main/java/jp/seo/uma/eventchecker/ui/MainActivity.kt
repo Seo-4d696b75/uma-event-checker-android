@@ -3,10 +3,10 @@ package jp.seo.uma.eventchecker.ui
 import android.app.Service
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelStore
@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val REQUEST_CAPTURE = 33333
+        const val REQUEST_OVERLAY = 44444
     }
 
     @Inject
@@ -60,26 +61,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val intent = Intent(this, CheckerService::class.java)
-        startForegroundService(intent)
-
-        val image = findViewById<ImageView>(R.id.image_ocr)
-        val ocrText = findViewById<TextView>(R.id.text_ocr)
         val progress = findViewById<View>(R.id.progres_main)
 
         viewModel.loading.observe(this) {
             progress.visibility = if (it) View.VISIBLE else View.GONE
-        }
-
-        // init MediaProjection API
-        if (!capture.initialized) {
-            projectionManager =
-                getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            startActivityForResult(
-                projectionManager.createScreenCaptureIntent(),
-                REQUEST_CAPTURE
-            )
-            capture.setMetrics(windowManager)
         }
 
         // check OpenCV and init ViewModel
@@ -91,15 +76,57 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        // check permission
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(
+                applicationContext,
+                "Need \"DrawOverlay\" Permission",
+                Toast.LENGTH_SHORT
+            ).show()
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:${packageName}")
+            )
+            startActivityForResult(intent, REQUEST_OVERLAY)
+            return
+        }
+        // init MediaProjection API
+        if (!capture.initialized) {
+            projectionManager =
+                getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            startActivityForResult(
+                projectionManager.createScreenCaptureIntent(),
+                REQUEST_CAPTURE
+            )
+            capture.setMetrics(windowManager)
+            return
+        }
+        val intent = Intent(this, CheckerService::class.java)
+        startForegroundService(intent)
+
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CAPTURE) {
             if (resultCode == RESULT_OK && data != null) {
                 val projection = projectionManager.getMediaProjection(resultCode, data)
                 capture.setMediaProjection(projection)
+            } else {
+                Toast.makeText(this, "fail to get capture", Toast.LENGTH_SHORT).show()
+                finish()
             }
-        } else {
-            Toast.makeText(this, "fail to get capture", Toast.LENGTH_LONG).show()
+        } else if (requestCode == REQUEST_OVERLAY) {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(
+                    this,
+                    "overlay permission not granted",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            }
         }
     }
 }

@@ -44,6 +44,15 @@ data class GameEvent(
         result = 31 * result + choices.contentHashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "$eventTitle\n${
+            choices.joinToString(
+                separator = "\n",
+                transform = EventChoice::toString
+            )
+        }"
+    }
 }
 
 @Serializable
@@ -52,4 +61,9 @@ data class EventChoice(
     val name: String,
     @SerialName("t")
     val message: String
-)
+) {
+    override fun toString(): String {
+        val lines = message.split("[br]", "<hr>")
+        return "- $name\n  ${lines.joinToString(separator = "\n  ")}"
+    }
+}

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="jp.seo.uma.eventchecker">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <application
         android:name=".core.HiltApplication"
         android:allowBackup="false"
@@ -10,6 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.UmaEventChecker">
+        <service
+            android:name=".core.CheckerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
         <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,12 +24,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service
-            android:name=".core.CheckerService"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection"/>
     </application>
-
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
 </manifest>
