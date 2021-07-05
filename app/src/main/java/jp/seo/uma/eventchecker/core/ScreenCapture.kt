@@ -10,10 +10,9 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.os.Build
-import android.util.Log
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.WindowManager
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import javax.inject.Inject
@@ -29,12 +28,12 @@ class ScreenCapture @Inject constructor(
     private val context: Context
 ) : ImageReader.OnImageAvailableListener {
 
+    private var projection: MediaProjection? = null
+    private var reader: ImageReader? = null
     private var display: VirtualDisplay? = null
-    private val _screen = MutableLiveData<Bitmap>()
 
     var callback: ((Bitmap) -> Unit)? = null
 
-    val screen: LiveData<Bitmap> = _screen
     val initialized: Boolean
         get() = display != null
 
@@ -44,6 +43,8 @@ class ScreenCapture @Inject constructor(
     private var navigationBarHeight: Int = 0
 
     private val scale = context.resources.readFloat(R.dimen.screen_capture_scale)
+
+    private var thread: HandlerThread? = null
 
     fun setMetrics(windowManager: WindowManager) {
 
@@ -66,12 +67,21 @@ class ScreenCapture @Inject constructor(
 
     fun setMediaProjection(projection: MediaProjection) {
         if (display == null) {
-            display = createDisplay(projection)
+            // Prepare another thread than Main one to process image
+            val thread = this.thread ?: kotlin.run {
+                val t = HandlerThread("screen-capture")
+                t.start()
+                this.thread = t
+                t
+            }
+            val handler = Handler(thread.looper)
+            this.projection = projection
+            display = createDisplay(projection, handler)
         }
     }
 
     @SuppressLint("WrongConstant")
-    private fun createDisplay(projection: MediaProjection): VirtualDisplay {
+    private fun createDisplay(projection: MediaProjection, handler: Handler): VirtualDisplay {
         val width = (screenWidth * scale).toInt()
         val height = (screenHeight * scale).toInt()
         context.resources.displayMetrics.let {
@@ -79,9 +89,10 @@ class ScreenCapture @Inject constructor(
                 width,
                 height,
                 PixelFormat.RGBA_8888,
-                2
+                4
             )
-            reader.setOnImageAvailableListener(this, null)
+            reader.setOnImageAvailableListener(this, handler)
+            this.reader = reader
             return projection.createVirtualDisplay(
                 "CapturedDisplay",
                 width,
@@ -89,38 +100,46 @@ class ScreenCapture @Inject constructor(
                 it.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 reader.surface,
-                null, null
+                null, handler
             )
         }
     }
 
     override fun onImageAvailable(reader: ImageReader) {
         val img = reader.acquireLatestImage() ?: return
-        val plane = img.planes[0]
-        val bitmap = Bitmap.createBitmap(
-            plane.rowStride / plane.pixelStride,
-            (screenHeight * scale).toInt(),
-            Bitmap.Config.ARGB_8888
-        )
-        bitmap.copyPixelsFromBuffer(plane.buffer)
+        kotlin.runCatching {
+            val plane = img.planes[0]
+            val bitmap = Bitmap.createBitmap(
+                plane.rowStride / plane.pixelStride,
+                (screenHeight * scale).toInt(),
+                Bitmap.Config.ARGB_8888
+            )
+            bitmap.copyPixelsFromBuffer(plane.buffer)
+            // Remove are of status-bar and navigation-bar
+            val crop = Bitmap.createBitmap(
+                bitmap,
+                0,
+                (statusBarHeight * scale).toInt(),
+                (screenWidth * scale).toInt(),
+                ((screenHeight - statusBarHeight - navigationBarHeight) * scale).toInt()
+            )
+            bitmap.recycle()
+            //Log.d("Screen", "captured")
+            callback?.invoke(crop)
+        }
         img.close()
-        val crop = Bitmap.createBitmap(
-            bitmap,
-            0,
-            (statusBarHeight * scale).toInt(),
-            (screenWidth * scale).toInt(),
-            ((screenHeight - statusBarHeight - navigationBarHeight) * scale).toInt()
-        )
-        bitmap.recycle()
-        Log.d("Screen", "captured")
-        _screen.postValue(crop)
-        callback?.invoke(crop)
     }
 
     fun release() {
         display?.release()
         display = null
+        reader?.close()
+        reader = null
+        projection?.stop()
+        projection = null
         callback = null
+        thread?.quit()
+        thread = null
     }
 
 }
