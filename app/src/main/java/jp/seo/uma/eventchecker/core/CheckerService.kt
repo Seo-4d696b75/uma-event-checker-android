@@ -13,12 +13,14 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.widget.ListView
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.ui.EventChoiceAdapter
 import javax.inject.Inject
 
 /**
@@ -68,7 +70,6 @@ class CheckerService : LifecycleService() {
 
     private lateinit var manager: WindowManager
     private var view: View? = null
-    private var eventText: TextView? = null
 
     private val viewModel: MainViewModel by lazy {
         MainViewModel.getInstance(store)
@@ -123,41 +124,45 @@ class CheckerService : LifecycleService() {
 
         manager = getSystemService(WINDOW_SERVICE) as WindowManager
 
-        initView(applicationContext)
 
-        viewModel.currentEvent.observe(this) { event ->
-            Log.d("service", event?.eventTitle ?: "none")
-            eventText?.let {
-                it.text = event?.toString()
-                it.invalidate()
-            }
-        }
-    }
-
-    private fun initView(context: Context) {
-
-        val inflater = LayoutInflater.from(context)
+        // init overlay view
+        val inflater = LayoutInflater.from(applicationContext)
         val layerType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         val layoutParam = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            0, 0, layerType,
+            0,
+            applicationContext.resources.getDimensionPixelSize(R.dimen.overlay_margin_top),
+            layerType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         )
-        layoutParam.gravity = Gravity.TOP.or(Gravity.END)
+        layoutParam.gravity = Gravity.END or Gravity.TOP
         layoutParam.screenBrightness = -1f
         val view = inflater.inflate(R.layout.overlay_main, null, false)
         view.visibility = View.VISIBLE
         this.view = view
-        this.eventText = view.findViewById(R.id.text_overlay)
+        val textTitle = view.findViewById<TextView>(R.id.text_overlay_title)
+        val listChoice = view.findViewById<ListView>(R.id.list_overlay_choices)
+        listChoice.divider = null
+        listChoice.dividerHeight = 0
         manager.addView(view, layoutParam)
+
+
+        viewModel.currentEvent.observe(this) { event ->
+            Log.d("service", event?.eventTitle ?: "none")
+            view.visibility = if (event == null) View.GONE else View.VISIBLE
+            textTitle.text = event?.eventTitle ?: "None"
+            listChoice.adapter = event?.let {
+                EventChoiceAdapter(applicationContext, it.choices)
+            }
+        }
     }
 
     private fun release() {
         capture.release()
-        eventText = null
         view?.let {
             manager.removeView(it)
             view = null

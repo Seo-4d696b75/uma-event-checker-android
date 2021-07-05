@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="1dp">
+
+    <ImageView
+        android:id="@+id/img_choice_symbol"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_uma_symbol"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/text_choice_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:text="event title"
+        android:textSize="@dimen/text_size_overlay"
+        android:textStyle="bold"
+        android:textColor="@color/text_gray"
+        android:layout_marginStart="3dp"
+        app:layout_constraintStart_toEndOf="@id/img_choice_symbol"
+        app:layout_constraintTop_toTopOf="@id/img_choice_symbol"
+        app:layout_constraintBottom_toBottomOf="@id/img_choice_symbol" />
+
+    <TextView
+        android:id="@+id/text_choice_details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@id/text_choice_name"
+        android:text="What will happen if selected"
+        android:textSize="@dimen/text_size_overlay"
+        android:textStyle="normal"
+        android:textColor="@color/text_gray"
+        app:layout_constraintStart_toStartOf="@id/text_choice_name"
+        android:layout_marginTop="2dp"
+        app:layout_constraintTop_toBottomOf="@id/text_choice_name" />
+</androidx.constraintlayout.widget.ConstraintLayout>

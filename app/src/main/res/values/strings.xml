@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">UmaEventChecker</string>
+    <string name="event_choice_symbol">Ω</string>
 </resources>

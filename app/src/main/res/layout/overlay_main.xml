@@ -4,15 +4,27 @@
     android:layout_height="wrap_content"
     android:padding="3dp">
 
-    <TextView
-        android:id="@+id/text_overlay"
-        android:textColor="@color/black"
-        android:textFontWeight="800"
-        android:textSize="12sp"
-        android:text="text"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="@dimen/overlay_width"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:background="#AAFFFFFF"
-        android:padding="7dp"
-        android:layout_marginTop="180dp" />
+        android:padding="7dp">
+
+        <TextView
+            android:id="@+id/text_overlay_title"
+            android:textColor="@color/text_black"
+            android:textStyle="bold"
+            android:lines="1"
+            android:textSize="@dimen/text_size_overlay_large"
+            android:text="text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <ListView
+            android:id="@+id/list_overlay_choices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
 </RelativeLayout>

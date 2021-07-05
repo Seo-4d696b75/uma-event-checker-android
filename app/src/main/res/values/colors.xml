@@ -6,5 +6,19 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
+    <color name="text_black">#111111</color>
+    <color name="text_gray">#2A2A2A</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="uma_symbol_tint_0">#9ADD1C</color>
+    <color name="uma_symbol_tint_1">#FFCA19</color>
+    <color name="uma_symbol_tint_2">#FF7FB4</color>
+    <color name="uma_symbol_tint_3">#55D1F0</color>
+    <color name="uma_symbol_tint_4">#8D9EFF</color>
+    <integer-array name="uma_symbol_tint">
+        <item>@color/uma_symbol_tint_0</item>
+        <item>@color/uma_symbol_tint_1</item>
+        <item>@color/uma_symbol_tint_2</item>
+        <item>@color/uma_symbol_tint_3</item>
+        <item>@color/uma_symbol_tint_4</item>
+    </integer-array>
 </resources>

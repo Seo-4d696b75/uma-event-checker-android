@@ -63,7 +63,11 @@ data class EventChoice(
     val message: String
 ) {
     override fun toString(): String {
+        return "- $name\n  ${formatMessage("\n  ")}"
+    }
+
+    fun formatMessage(separator: String = "\n"): String {
         val lines = message.split("[br]", "<hr>")
-        return "- $name\n  ${lines.joinToString(separator = "\n  ")}"
+        return lines.joinToString(separator = separator)
     }
 }
