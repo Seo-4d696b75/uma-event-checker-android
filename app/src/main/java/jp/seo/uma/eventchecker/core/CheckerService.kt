@@ -20,6 +20,7 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.ui.EventChoiceAdapter
 import javax.inject.Inject
 
@@ -63,16 +64,19 @@ class CheckerService : LifecycleService() {
     }
 
     @Inject
-    lateinit var store: ViewModelStore
+    lateinit var capture: ScreenCapture
 
     @Inject
-    lateinit var capture: ScreenCapture
+    lateinit var repository: DataRepository
+
+    @Inject
+    lateinit var imageProcess: ImageProcess
 
     private lateinit var manager: WindowManager
     private var view: View? = null
 
     private val viewModel: MainViewModel by lazy {
-        MainViewModel.getInstance(store)
+        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -167,6 +171,5 @@ class CheckerService : LifecycleService() {
             manager.removeView(it)
             view = null
         }
-        viewModel.eventCallback = null
     }
 }

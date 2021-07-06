@@ -8,8 +8,8 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.CheckerService
@@ -29,14 +29,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Inject
-    lateinit var store: ViewModelStore
-
-    @Inject
     lateinit var capture: ScreenCapture
 
-    private val viewModel: MainViewModel by lazy {
-        MainViewModel.getInstance(store)
-    }
+    private val viewModel: MainViewModel by viewModels()
 
     private lateinit var projectionManager: MediaProjectionManager
 
@@ -61,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val progress = findViewById<View>(R.id.progres_main)
+        val progress = findViewById<View>(R.id.progress_main)
 
         viewModel.loading.observe(this) {
             progress.visibility = if (it) View.VISIBLE else View.GONE

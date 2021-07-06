@@ -2,36 +2,38 @@ package jp.seo.uma.eventchecker.core
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Looper
 import android.util.Log
 import androidx.annotation.MainThread
-import androidx.core.os.HandlerCompat
 import androidx.lifecycle.*
-import com.googlecode.tesseract.android.TessBaseAPI
-import jp.seo.uma.eventchecker.R
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import org.apache.lucene.search.spell.LevensteinDistance
-import java.io.File
+import javax.inject.Inject
 
 /**
  * @author Seo-4d696b75
  * @version 2021/07/03.
  */
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repository: DataRepository,
+    private val imgProcess: ImageProcess
+) : ViewModel() {
 
     companion object {
         const val OCR_DATA_DIR = "tessdata"
         const val OCR_TRAINED_DATA = "jpn.traineddata"
 
 
-        fun getInstance(store: ViewModelStore): MainViewModel {
+        fun getInstance(
+            store: ViewModelStore,
+            repository: DataRepository,
+            process: ImageProcess
+        ): MainViewModel {
             val factory = object : ViewModelProvider.Factory {
                 @SuppressWarnings("unchecked_cast")
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val obj = MainViewModel()
+                    val obj = MainViewModel(repository, process)
                     return obj as T
                 }
             }
@@ -43,196 +45,31 @@ class MainViewModel : ViewModel() {
 
     val loading: LiveData<Boolean> = _loading
 
-    private var _ocrText: String? = null
-    val ocrText = MutableLiveData<String?>(null)
+    val ocrText = imgProcess.title
 
-    private var hasInitialized = false
-    private lateinit var ocrApi: TessBaseAPI
-    private var ocrThreshold: Float = 0f
-
-    private lateinit var headerDetector: TemplateDetector
-    private lateinit var charaEventDetector: EventTypeDetector
-    private lateinit var supportEventDetector: EventTypeDetector
-    private lateinit var mainEventTypeDetector: EventTypeDetector
-    private lateinit var eventTitleCropper: EventTitleProcess
-
-    private lateinit var events: Array<GameEvent>
-    val currentEvent = MutableLiveData<GameEvent?>(null)
-    var eventCallback: ((GameEvent?) -> Unit)? = null
-    private val handler = HandlerCompat.createAsync(Looper.getMainLooper())
+    val currentEvent = repository.currentEvent
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
-        if (hasInitialized) return@launch
+        if (imgProcess.hasInitialized) return@launch
         _loading.value = true
-        loadData(context)
-        headerDetector = GameHeaderDetector(context)
-        charaEventDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_chara.png").toGrayMat(),
-            context
-        )
-        supportEventDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_support.png").toGrayMat(),
-            context
-        )
-        mainEventTypeDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_main.png").toGrayMat(),
-            context
-        )
-        eventTitleCropper = EventTitleProcess(context)
-        ocrThreshold = context.resources.readFloat(R.dimen.ocr_title_threshold)
-
-        hasInitialized = true
+        imgProcess.init(context)
         _loading.value = false
     }
 
-    private suspend fun loadData(context: Context) = withContext(Dispatchers.IO) {
-        val dir = File(context.filesDir, OCR_DATA_DIR)
-        if (!dir.exists() || !dir.isDirectory) {
-            if (!dir.mkdir()) {
-                throw RuntimeException("fail to mkdir: $dir")
-            }
-        }
-        val file = File(dir, OCR_TRAINED_DATA)
-        if (!file.exists()) {
-            copyAssetsToFiles(context, OCR_TRAINED_DATA, file)
-        }
-        ocrApi = TessBaseAPI()
-        if (!ocrApi.init(context.filesDir.toString(), "jpn")) {
-            throw RuntimeException("fail to ocr client")
-        }
-
-        val manager = context.resources.assets
-        manager.open("event.json").use { reader ->
-            val str = reader.readBytes().toString(Charsets.UTF_8)
-            events = Json { ignoreUnknownKeys = true }.decodeFromString(str)
-        }
-    }
-
-    private fun testImage(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val src = context.assets.getBitmap("test_game_2.jpg")
-            val detect = headerDetector.detect(src)
-            Log.d("Header", "detect: $detect")
-        }
-
-    }
-
-    private var latestBitmap: Bitmap? = null
 
     @Volatile
     private var processRunning: Boolean = false
 
     fun updateScreen(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
-        if (!hasInitialized) return@launch
-
-
         if (processRunning) {
-            //latestBitmap?.recycle()
-            //latestBitmap = img
             Log.d("update", "skip")
             return@launch
         }
         processRunning = true
-        update(img)
+        val title = imgProcess.process(img)
+        repository.setEventTitle(title)
         processRunning = false
     }
 
-    private fun update(img: Bitmap) {
-        val isGame = headerDetector.detect(img)
-        Log.d("update", "target $isGame")
-        if (isGame) {
-            val type = detectEventType(img)
-            Log.d("update", "event type '${type.toString()}'")
-            if (type != null) {
-                val title = getEventTitle(img)
-                Log.d("update", "event title '$title'")
-                val latest = _ocrText
-                if (latest != title) {
-                    _ocrText = title
-                    val event = searchEventTitle(title)
-                    val r = handler.post {
-                        Log.d("update", "post")
-                        eventCallback?.invoke(event)
-                        currentEvent.value = event
-                        ocrText.value = title
-                    }
-                    if (!r) Log.e("update", "fail to post event")
-                }
-                return
-            }
-        }
-        _ocrText = null
-        val r = handler.post {
-            Log.d("update", "post null")
-            ocrText.value = null
-            currentEvent.value = null
-        }
-        if (!r) Log.e("update", "fail to post null")
-    }
-
-    private enum class EventType {
-        Main, Chara, Support
-    }
-
-    private fun detectEventType(img: Bitmap): EventType? {
-        if (charaEventDetector.detect(img)) return EventType.Chara
-        if (supportEventDetector.detect(img)) return EventType.Support
-        if (mainEventTypeDetector.detect(img)) return EventType.Main
-        return null
-    }
-
-    private fun getEventTitle(img: Bitmap): String {
-        val target = eventTitleCropper.preProcess(img)
-        return extractText(target)
-    }
-
-    private fun extractText(img: Bitmap): String {
-        ocrApi.setImage(img)
-        val text = ocrApi.utF8Text
-        return text.replace(Regex("[\\s　]+"), "")
-    }
-
-    private fun searchEventTitle(title: String): GameEvent? {
-        val score = Array<Float>(events.size) { 0f }
-        calcTitleDistance(0, events.size, title, score)
-        return score.maxOrNull()?.let { maxScore ->
-            if (maxScore > ocrThreshold) {
-                val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
-                Log.d(
-                    "search",
-                    "max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
-                )
-                list[0]
-            } else {
-                Log.d(
-                    "search",
-                    "max score: $maxScore < th: $ocrThreshold"
-                )
-                null
-            }
-        }
-    }
-
-    private fun calcTitleDistance(start: Int, end: Int, query: String, dst: Array<Float>) {
-        if (start + 32 < end) {
-            val mid = start + (end - start) / 2
-            //viewModelScope.apply {
-            //   val left = async(Dispatchers.IO) {
-            calcTitleDistance(start, mid, query, dst)
-            // }
-            //val right = async(Dispatchers.IO) {
-            calcTitleDistance(mid, end, query, dst)
-            //}
-            //left.await()
-            //right.await()
-            //}
-        } else {
-            val algo = LevensteinDistance()
-            (start until end).forEach { idx ->
-                val event = events[idx]
-                dst[idx] = algo.getDistance(event.eventTitle, query)
-            }
-        }
-    }
 }
