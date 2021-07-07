@@ -115,10 +115,10 @@ class CheckerService : LifecycleService() {
             PendingIntent.getService(applicationContext, 1, exit, PendingIntent.FLAG_ONE_SHOT)
         val notification =
             NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_launcher_custom_foreground)
                 .setContentTitle("UmaEventChecker")
                 .setContentText("service is now running")
-                .addAction(R.drawable.ic_launcher_foreground, "stop", pending)
+                .addAction(R.drawable.ic_launcher_custom_foreground, "stop", pending)
                 .build()
         startForeground(NOTIFICATION_TAG, notification)
 
