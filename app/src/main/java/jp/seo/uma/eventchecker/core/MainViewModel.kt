@@ -2,6 +2,7 @@ package jp.seo.uma.eventchecker.core
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
@@ -21,9 +22,6 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val OCR_DATA_DIR = "tessdata"
-        const val OCR_TRAINED_DATA = "jpn.traineddata"
-
 
         fun getInstance(
             store: ViewModelStore,
@@ -39,11 +37,11 @@ class MainViewModel @Inject constructor(
             }
             return ViewModelProvider({ store }, factory).get(MainViewModel::class.java)
         }
+
+        const val MIN_UPDATE_INTERVAL = 500L
     }
 
-    private val _loading = MutableLiveData(false)
-
-    val loading: LiveData<Boolean> = _loading
+    val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
 
     val ocrText = imgProcess.title
 
@@ -51,12 +49,8 @@ class MainViewModel @Inject constructor(
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
-        if (imgProcess.hasInitialized) return@launch
-        _loading.value = true
         imgProcess.init(context)
-        _loading.value = false
     }
-
 
     @Volatile
     private var processRunning: Boolean = false
@@ -66,9 +60,15 @@ class MainViewModel @Inject constructor(
             Log.d("update", "skip")
             return@launch
         }
+        val start = SystemClock.uptimeMillis()
         processRunning = true
         val title = imgProcess.process(img)
         repository.setEventTitle(title)
+        val wait = start + MIN_UPDATE_INTERVAL - SystemClock.uptimeMillis()
+        if (wait > 0L) {
+            Log.d("update", "wait $wait ms")
+            delay(wait)
+        }
         processRunning = false
     }
 

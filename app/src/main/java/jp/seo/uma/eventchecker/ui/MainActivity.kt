@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         object : BaseLoaderCallback(applicationContext) {
             override fun onManagerConnected(status: Int) {
                 if (status == LoaderCallbackInterface.SUCCESS) {
+                    // init img process
                     viewModel.init(applicationContext)
                 } else {
                     Toast.makeText(
@@ -57,9 +60,25 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val progress = findViewById<View>(R.id.progress_main)
+        val message = findViewById<TextView>(R.id.text_main)
+        val button = findViewById<Button>(R.id.button_start)
 
         viewModel.loading.observe(this) {
             progress.visibility = if (it) View.VISIBLE else View.GONE
+            button.isEnabled = !it
+        }
+
+        capture.running.observe(this) {
+            message.text =
+                getString(if (it) R.string.message_main_running else R.string.message_main_idle)
+            button.text = getString(if (it) R.string.button_stop else R.string.button_start)
+        }
+
+        button.setOnClickListener {
+            when (capture.running.value) {
+                true -> stopService()
+                else -> startService()
+            }
         }
 
         // check OpenCV and init ViewModel
@@ -71,8 +90,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
+    private fun startService() {
+
         // check permission
         if (!Settings.canDrawOverlays(this)) {
             Toast.makeText(
@@ -87,34 +106,41 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, REQUEST_OVERLAY)
             return
         }
-        // init MediaProjection API
-        if (!capture.initialized) {
-            projectionManager =
-                getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            startActivityForResult(
-                projectionManager.createScreenCaptureIntent(),
-                REQUEST_CAPTURE
-            )
-            capture.setMetrics(windowManager)
-            return
-        }
-        val intent = Intent(this, CheckerService::class.java)
-        startForegroundService(intent)
 
+        // init MediaProjection API
+        projectionManager =
+            getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        startActivityForResult(
+            projectionManager.createScreenCaptureIntent(),
+            REQUEST_CAPTURE
+        )
+        capture.setMetrics(windowManager)
+    }
+
+    private fun stopService() {
+        capture.stop()
+        val intent = Intent(this, CheckerService::class.java)
+        stopService(intent)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CAPTURE) {
             if (resultCode == RESULT_OK && data != null) {
+                // all ready. start service
+                val intent = Intent(this, CheckerService::class.java)
+                startForegroundService(intent)
                 val projection = projectionManager.getMediaProjection(resultCode, data)
-                capture.setMediaProjection(projection)
+                capture.start(projection)
             } else {
                 Toast.makeText(this, "fail to get capture", Toast.LENGTH_SHORT).show()
                 finish()
             }
         } else if (requestCode == REQUEST_OVERLAY) {
-            if (!Settings.canDrawOverlays(this)) {
+            if (Settings.canDrawOverlays(this)) {
+                // retry to start service
+                startService()
+            } else {
                 Toast.makeText(
                     this,
                     "overlay permission not granted",

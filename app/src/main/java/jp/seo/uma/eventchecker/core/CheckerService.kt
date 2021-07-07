@@ -84,10 +84,7 @@ class CheckerService : LifecycleService() {
         intent?.let {
             if (it.hasExtra(KEY_REQUEST)) {
                 when (it.getStringExtra(KEY_REQUEST)) {
-                    REQUEST_EXIT_SERVICE -> {
-                        release()
-                        stopSelf()
-                    }
+                    REQUEST_EXIT_SERVICE -> stopSelf()
                 }
             }
         }
@@ -165,8 +162,10 @@ class CheckerService : LifecycleService() {
         }
     }
 
-    private fun release() {
-        capture.release()
+    override fun onDestroy() {
+        super.onDestroy()
+        capture.stop()
+        capture.callback = null
         view?.let {
             manager.removeView(it)
             view = null

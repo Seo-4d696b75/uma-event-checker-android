@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">UmaEventChecker</string>
-    <string name="main_message">Event checker is running in background.\nLet\'s open the App and win うまぴょい！</string>
+    <string name="message_main_idle">Waiting for starting</string>
+    <string name="message_main_running">Event checker is running in background.\nLet\'s open the App and win うまぴょい！</string>
+    <string name="button_start">start</string>
+    <string name="button_stop">stop</string>
 </resources>

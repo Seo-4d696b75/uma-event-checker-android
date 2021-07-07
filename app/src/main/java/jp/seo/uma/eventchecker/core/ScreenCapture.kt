@@ -13,6 +13,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.WindowManager
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import javax.inject.Inject
@@ -34,8 +36,9 @@ class ScreenCapture @Inject constructor(
 
     var callback: ((Bitmap) -> Unit)? = null
 
-    val initialized: Boolean
-        get() = display != null
+    private val _running = MutableLiveData<Boolean>(false)
+
+    val running: LiveData<Boolean> = _running
 
     private var screenWidth: Int = 0
     private var screenHeight: Int = 0
@@ -65,18 +68,16 @@ class ScreenCapture @Inject constructor(
 
     }
 
-    fun setMediaProjection(projection: MediaProjection) {
+    fun start(projection: MediaProjection) {
         if (display == null) {
             // Prepare another thread than Main one to process image
-            val thread = this.thread ?: kotlin.run {
-                val t = HandlerThread("screen-capture")
-                t.start()
-                this.thread = t
-                t
-            }
+            val thread = HandlerThread("screen-capture")
+            thread.start()
+            this.thread = thread
             val handler = Handler(thread.looper)
             this.projection = projection
             display = createDisplay(projection, handler)
+            _running.value = true
         }
     }
 
@@ -130,16 +131,16 @@ class ScreenCapture @Inject constructor(
         img.close()
     }
 
-    fun release() {
+    fun stop() {
         display?.release()
         display = null
         reader?.close()
         reader = null
         projection?.stop()
         projection = null
-        callback = null
         thread?.quit()
         thread = null
+        _running.value = false
     }
 
 }

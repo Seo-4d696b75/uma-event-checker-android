@@ -3,10 +3,10 @@ package jp.seo.uma.eventchecker.img
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
-import jp.seo.uma.eventchecker.core.MainViewModel
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
 import jp.seo.uma.eventchecker.core.getBitmap
 import jp.seo.uma.eventchecker.core.toGrayMat
@@ -23,10 +23,18 @@ import javax.inject.Singleton
 @Singleton
 class ImageProcess @Inject constructor() {
 
+    companion object {
+
+        const val OCR_DATA_DIR = "tessdata"
+        const val OCR_TRAINED_DATA = "jpn.traineddata"
+    }
+
     private val _title = MutableLiveData<String?>(null)
     val title: LiveData<String?> = _title
 
-    var hasInitialized = false
+    private val initialized = MutableLiveData(false)
+    private var _initialized = false
+    var hasInitialized: LiveData<Boolean> = initialized
     private lateinit var ocrApi: TessBaseAPI
 
     private lateinit var headerDetector: TemplateDetector
@@ -35,8 +43,9 @@ class ImageProcess @Inject constructor() {
     private lateinit var mainEventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
 
+    @MainThread
     suspend fun init(context: Context) {
-        if (hasInitialized) return
+        if (_initialized) return
         loadData(context)
         headerDetector = GameHeaderDetector(context)
         charaEventDetector = EventTypeDetector(
@@ -53,19 +62,20 @@ class ImageProcess @Inject constructor() {
         )
         eventTitleCropper = EventTitleProcess(context)
 
-        hasInitialized = true
+        initialized.value = true
+        _initialized = true
     }
 
     private suspend fun loadData(context: Context) = withContext(Dispatchers.IO) {
-        val dir = File(context.filesDir, MainViewModel.OCR_DATA_DIR)
+        val dir = File(context.filesDir, OCR_DATA_DIR)
         if (!dir.exists() || !dir.isDirectory) {
             if (!dir.mkdir()) {
                 throw RuntimeException("fail to mkdir: $dir")
             }
         }
-        val file = File(dir, MainViewModel.OCR_TRAINED_DATA)
+        val file = File(dir, OCR_TRAINED_DATA)
         if (!file.exists()) {
-            copyAssetsToFiles(context, MainViewModel.OCR_TRAINED_DATA, file)
+            copyAssetsToFiles(context, OCR_TRAINED_DATA, file)
         }
         ocrApi = TessBaseAPI()
         if (!ocrApi.init(context.filesDir.toString(), "jpn")) {
@@ -74,6 +84,7 @@ class ImageProcess @Inject constructor() {
     }
 
     fun process(img: Bitmap): String? {
+        if (!_initialized) return null
         val isGame = headerDetector.detect(img)
         Log.d("update", "target $isGame")
         if (isGame) {

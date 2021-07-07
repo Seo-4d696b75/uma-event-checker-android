@@ -23,6 +23,10 @@ class DataRepository @Inject constructor(
     @ApplicationContext context: Context
 ) {
 
+    companion object {
+        const val DATA_FILE = "event.json"
+    }
+
     private val events: Array<GameEvent>
     private val ocrThreshold: Float
     private val _currentEvent = MutableLiveData<GameEvent?>(null)
@@ -30,7 +34,7 @@ class DataRepository @Inject constructor(
 
     init {
         val manager = context.resources.assets
-        manager.open("event.json").use { reader ->
+        manager.open(DATA_FILE).use { reader ->
             val str = reader.readBytes().toString(Charsets.UTF_8)
             events = Json { ignoreUnknownKeys = true }.decodeFromString(str)
         }
