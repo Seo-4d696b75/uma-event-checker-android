@@ -6,6 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -15,6 +18,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * ゲーム中のイベント情報を管理・検索
+ *
  * @author Seo-4d696b75
  * @version 2021/07/04.
  */
@@ -43,7 +48,7 @@ class DataRepository @Inject constructor(
 
     private var eventTitle: String? = null
 
-    fun setEventTitle(value: String?) {
+    suspend fun setEventTitle(value: String?) {
         if (eventTitle != value) {
             if (value == null) {
                 _currentEvent.postValue(null)
@@ -57,7 +62,7 @@ class DataRepository @Inject constructor(
 
     val currentEvent: LiveData<GameEvent?> = _currentEvent
 
-    private fun searchEventTitle(title: String): GameEvent? {
+    private suspend fun searchEventTitle(title: String): GameEvent? {
         val score = Array<Float>(events.size) { 0f }
         calcTitleDistance(0, events.size, title, score)
         return score.maxOrNull()?.let { maxScore ->
@@ -78,19 +83,22 @@ class DataRepository @Inject constructor(
         }
     }
 
-    private fun calcTitleDistance(start: Int, end: Int, query: String, dst: Array<Float>) {
-        if (start + 32 < end) {
+    private suspend fun calcTitleDistance(
+        start: Int,
+        end: Int,
+        query: String,
+        dst: Array<Float>
+    ): Unit = withContext(Dispatchers.IO) {
+        if (start + 64 < end) {
             val mid = start + (end - start) / 2
-            //viewModelScope.apply {
-            //   val left = async(Dispatchers.IO) {
-            calcTitleDistance(start, mid, query, dst)
-            // }
-            //val right = async(Dispatchers.IO) {
-            calcTitleDistance(mid, end, query, dst)
-            //}
-            //left.await()
-            //right.await()
-            //}
+            val left = async {
+                calcTitleDistance(start, mid, query, dst)
+            }
+            val right = async {
+                calcTitleDistance(mid, end, query, dst)
+            }
+            left.await()
+            right.await()
         } else {
             val algo = LevensteinDistance()
             (start until end).forEach { idx ->

@@ -2,11 +2,13 @@ package jp.seo.uma.eventchecker.img
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.Image
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
+import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
 import jp.seo.uma.eventchecker.core.getBitmap
 import jp.seo.uma.eventchecker.core.toGrayMat
@@ -21,7 +23,9 @@ import javax.inject.Singleton
  * @version 2021/07/06.
  */
 @Singleton
-class ImageProcess @Inject constructor() {
+class ImageProcess @Inject constructor(
+    private val repository: SettingRepository
+) {
 
     companion object {
 
@@ -83,15 +87,27 @@ class ImageProcess @Inject constructor() {
         }
     }
 
-    fun process(img: Bitmap): String? {
+    fun copyToBitmap(img: Image): Bitmap {
+        val plane = img.planes[0]
+        val bitmap = Bitmap.createBitmap(
+            plane.rowStride / plane.pixelStride,
+            repository.capturedScreenHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        bitmap.copyPixelsFromBuffer(plane.buffer)
+        return bitmap
+    }
+
+    fun getEventTitle(screen: Bitmap): String? {
         if (!_initialized) return null
-        val isGame = headerDetector.detect(img)
+        val bitmap = cropContentArea(screen)
+        val isGame = headerDetector.detect(bitmap)
         Log.d("update", "target $isGame")
         if (isGame) {
-            val type = detectEventType(img)
+            val type = detectEventType(bitmap)
             Log.d("update", "event type '${type.toString()}'")
             if (type != null) {
-                val title = getEventTitle(img)
+                val title = extranctEventTitle(bitmap)
                 Log.d("update", "event title '$title'")
                 _title.postValue(title)
                 return title
@@ -101,6 +117,18 @@ class ImageProcess @Inject constructor() {
         return null
     }
 
+    private fun cropContentArea(bitmap: Bitmap): Bitmap {
+        // Remove area of status-bar and navigation-bar
+        val crop = Bitmap.createBitmap(
+            bitmap,
+            0,
+            repository.capturedStatusBarHeight,
+            repository.capturedScreenWidth,
+            repository.capturedContentHeight
+        )
+        bitmap.recycle()
+        return crop
+    }
 
     private enum class EventType {
         Main, Chara, Support
@@ -113,7 +141,7 @@ class ImageProcess @Inject constructor() {
         return null
     }
 
-    private fun getEventTitle(img: Bitmap): String {
+    private fun extranctEventTitle(img: Bitmap): String {
         val target = eventTitleCropper.preProcess(img)
         return extractText(target)
     }

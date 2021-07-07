@@ -22,6 +22,13 @@ import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import javax.inject.Inject
 
+/**
+ * ユーザとのインタラクションが必要な処理
+ *
+ * - UI操作が必要なパーミッション・API使用の要求
+ * - アプリ開始時に初期化完了まで待機させる
+ * - サービスの開始・終了
+ */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -114,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             projectionManager.createScreenCaptureIntent(),
             REQUEST_CAPTURE
         )
-        capture.setMetrics(windowManager)
+        viewModel.setMetrics(windowManager)
     }
 
     private fun stopService() {

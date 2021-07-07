@@ -7,6 +7,7 @@
 
     <ImageView
         android:id="@+id/img_choice_symbol"
+        android:padding="2dp"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_uma_symbol"

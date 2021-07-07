@@ -6,8 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.os.Binder
-import android.os.IBinder
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -25,35 +23,15 @@ import jp.seo.uma.eventchecker.ui.EventChoiceAdapter
 import javax.inject.Inject
 
 /**
+ * バックグラウンドでの処理が必要なタスクを担当
+ *
+ * - MediaProjectionAPIでキャプチャした画像を受け取り処理
+ * - 検索結果をUIに反映
  * @author Seo-4d696b75
  * @version 2021/07/02.
  */
 @AndroidEntryPoint
 class CheckerService : LifecycleService() {
-
-
-    inner class StationServiceBinder : Binder() {
-        fun bind(): CheckerService {
-            return this@CheckerService
-        }
-    }
-
-    override fun onBind(intent: Intent): IBinder {
-        super.onBind(intent)
-        Log.d("service", "onBind: client requests to bind service")
-        return StationServiceBinder()
-    }
-
-
-    override fun onUnbind(intent: Intent?): Boolean {
-        Log.d("service", "onUnbind: client unbinds service")
-        return true
-    }
-
-    override fun onRebind(intent: Intent?) {
-        Log.d("service", "onRebind: client binds service again")
-    }
-
 
     companion object {
         const val NOTIFICATION_TAG = 564
@@ -72,11 +50,14 @@ class CheckerService : LifecycleService() {
     @Inject
     lateinit var imageProcess: ImageProcess
 
+    @Inject
+    lateinit var setting: SettingRepository
+
     private lateinit var manager: WindowManager
     private var view: View? = null
 
     private val viewModel: MainViewModel by lazy {
-        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess)
+        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess, setting)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

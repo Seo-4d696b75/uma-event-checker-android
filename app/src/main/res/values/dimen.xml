@@ -2,6 +2,7 @@
 <resources>
     <item type="dimen" format="float" name="screen_capture_scale">0.5</item>
 
+    <!-- キャプチャした画像からのサンプリング位置は画面幅に対し正規化 -->
     <item type="dimen" format="float" name="template_game_header_sampling_x">0.0</item>
     <item type="dimen" format="float" name="template_game_header_sampling_width">0.1619</item>
     <item type="dimen" format="float" name="template_game_header_sampling_y">0.0</item>
@@ -16,7 +17,6 @@
     <item type="dimen" format="float" name="template_event_type_origin">546</item>
     <item type="dimen" format="float" name="template_event_type_threshold">0.7</item>
 
-
     <item type="dimen" format="float" name="ocr_title_sampling_x">0.16</item>
     <item type="dimen" format="float" name="ocr_title_sampling_width">0.55</item>
     <item type="dimen" format="float" name="ocr_title_sampling_y">0.33</item>
@@ -28,4 +28,6 @@
     <dimen name="text_size_overlay_large">14sp</dimen>
     <dimen name="overlay_margin_top">180dp</dimen>
     <dimen name="overlay_width">200dp</dimen>
+
+    <integer name="min_update_interval_ms">500</integer>
 </resources>

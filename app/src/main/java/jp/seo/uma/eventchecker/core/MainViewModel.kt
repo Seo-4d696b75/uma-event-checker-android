@@ -1,14 +1,17 @@
 package jp.seo.uma.eventchecker.core
 
 import android.content.Context
-import android.graphics.Bitmap
+import android.media.Image
 import android.os.SystemClock
 import android.util.Log
+import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.img.*
-import kotlinx.coroutines.*
+import jp.seo.uma.eventchecker.img.ImageProcess
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -18,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: DataRepository,
-    private val imgProcess: ImageProcess
+    private val imgProcess: ImageProcess,
+    private val setting: SettingRepository
 ) : ViewModel() {
 
     companion object {
@@ -26,19 +30,18 @@ class MainViewModel @Inject constructor(
         fun getInstance(
             store: ViewModelStore,
             repository: DataRepository,
-            process: ImageProcess
+            process: ImageProcess,
+            setting: SettingRepository
         ): MainViewModel {
             val factory = object : ViewModelProvider.Factory {
                 @SuppressWarnings("unchecked_cast")
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val obj = MainViewModel(repository, process)
+                    val obj = MainViewModel(repository, process, setting)
                     return obj as T
                 }
             }
             return ViewModelProvider({ store }, factory).get(MainViewModel::class.java)
         }
-
-        const val MIN_UPDATE_INTERVAL = 500L
     }
 
     val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
@@ -52,24 +55,27 @@ class MainViewModel @Inject constructor(
         imgProcess.init(context)
     }
 
-    @Volatile
-    private var processRunning: Boolean = false
+    fun setMetrics(manager: WindowManager) = setting.setMetrics(manager)
 
-    fun updateScreen(img: Bitmap) = viewModelScope.launch(Dispatchers.IO) {
-        if (processRunning) {
-            Log.d("update", "skip")
-            return@launch
-        }
+    /**
+     * Note: this func is supposed to be called from a callback set at ImageReader,
+     * which is running NOT on main thread
+     */
+    fun updateScreen(img: Image) = runBlocking {
+        /*
+        ImageReader provides image data via a callback, whereas
+        this ViewModel uses coroutine.
+        runBlocking is used in order to call suspending style functions in blocking style
+         */
         val start = SystemClock.uptimeMillis()
-        processRunning = true
-        val title = imgProcess.process(img)
+        val bitmap = imgProcess.copyToBitmap(img)
+        val title = imgProcess.getEventTitle(bitmap)
         repository.setEventTitle(title)
-        val wait = start + MIN_UPDATE_INTERVAL - SystemClock.uptimeMillis()
+        val wait = start + setting.minUpdateInterval - SystemClock.uptimeMillis()
         if (wait > 0L) {
             Log.d("update", "wait $wait ms")
             delay(wait)
         }
-        processRunning = false
     }
 
 }
