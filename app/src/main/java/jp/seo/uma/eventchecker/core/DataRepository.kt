@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -24,20 +23,17 @@ import javax.inject.Singleton
  * @version 2021/07/04.
  */
 @Singleton
-class DataRepository @Inject constructor(
-    @ApplicationContext context: Context
-) {
+class DataRepository @Inject constructor() {
 
     companion object {
         const val DATA_FILE = "event.json"
     }
 
-    private val events: Array<GameEvent>
-    private val ocrThreshold: Float
+    private lateinit var events: Array<GameEvent>
+    private var ocrThreshold: Float = 0.5f
     private val _currentEvent = MutableLiveData<GameEvent?>(null)
 
-
-    init {
+    suspend fun init(context: Context) = withContext(Dispatchers.IO) {
         val manager = context.resources.assets
         manager.open(DATA_FILE).use { reader ->
             val str = reader.readBytes().toString(Charsets.UTF_8)
@@ -48,21 +44,39 @@ class DataRepository @Inject constructor(
 
     private var eventTitle: String? = null
 
-    suspend fun setEventTitle(value: String?) {
-        if (eventTitle != value) {
-            if (value == null) {
-                _currentEvent.postValue(null)
+    fun setCurrentEvent(events: List<GameEvent>, ownerName: String?) {
+        if (events.isEmpty()) {
+            _currentEvent.postValue(null)
+        } else if (events.size == 1 || ownerName == null) {
+            _currentEvent.postValue(events[0])
+        } else {
+            var event = events[0]
+            val filter = events.filter { it.ownerName == ownerName }
+            if (filter.isNotEmpty()) {
+                event = filter[0]
+                Log.d("Event", "filtered size: ${filter.size} [0]: ${event.eventTitleKana}")
             } else {
-                val event = searchEventTitle(value)
-                _currentEvent.postValue(event)
+                Log.d("Event", "no event remains after filter")
             }
+            _currentEvent.postValue(event)
         }
-        eventTitle = value
     }
 
     val currentEvent: LiveData<GameEvent?> = _currentEvent
 
-    private suspend fun searchEventTitle(title: String): GameEvent? {
+    suspend fun searchForEvent(title: String?): List<GameEvent>? {
+        if (eventTitle != title) {
+            eventTitle = title
+            return if (title == null) {
+                emptyList()
+            } else {
+                searchEventTitle(title)
+            }
+        }
+        return null
+    }
+
+    private suspend fun searchEventTitle(title: String): List<GameEvent> {
         val score = Array<Float>(events.size) { 0f }
         calcTitleDistance(0, events.size, title, score)
         return score.maxOrNull()?.let { maxScore ->
@@ -72,7 +86,7 @@ class DataRepository @Inject constructor(
                     "search",
                     "max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
                 )
-                list[0]
+                list
             } else {
                 Log.d(
                     "search",
@@ -80,7 +94,7 @@ class DataRepository @Inject constructor(
                 )
                 null
             }
-        }
+        } ?: emptyList()
     }
 
     private suspend fun calcTitleDistance(

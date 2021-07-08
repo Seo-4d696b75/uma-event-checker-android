@@ -24,10 +24,39 @@
 
     <item type="dimen" format="float" name="ocr_title_threshold">0.5</item>
 
+    <item type="dimen" format="float" name="template_event_chara_sampling_x">0.0190</item>
+    <item type="dimen" format="float" name="template_event_chara_sampling_width">0.1428</item>
+    <item type="dimen" format="float" name="template_event_chara_sampling_y">0.2762</item>
+    <item type="dimen" format="float" name="template_event_chara_sampling_height">0.1428</item>
+    <item type="dimen" format="float" name="template_event_chara_threshold">0.5</item>
+
+    <item type="dimen" format="float" name="template_event_support_sampling_x">0.0256</item>
+    <item type="dimen" format="float" name="template_event_support_sampling_width">0.1318</item>
+    <item type="dimen" format="float" name="template_event_support_sampling_y">0.2619</item>
+    <item type="dimen" format="float" name="template_event_support_sampling_height">0.1684</item>
+    <item type="dimen" format="float" name="template_event_support_threshold">0.5</item>
+
     <dimen name="text_size_overlay">12sp</dimen>
     <dimen name="text_size_overlay_large">14sp</dimen>
     <dimen name="overlay_margin_top">180dp</dimen>
     <dimen name="overlay_width">200dp</dimen>
 
     <integer name="min_update_interval_ms">500</integer>
+
+    <item type="dimen" format="float" name="template_event_owner_support_width">0.1120</item>
+    <integer name="template_event_owner_support_resized_width">50</integer>
+    <item type="dimen" format="float" name="template_event_owner_support_sampling_x">0.0256</item>
+    <item type="dimen" format="float" name="template_event_owner_support_sampling_width">0.1318
+    </item>
+    <item type="dimen" format="float" name="template_event_owner_support_sampling_y">0.2619</item>
+    <item type="dimen" format="float" name="template_event_owner_support_sampling_height">0.1684
+    </item>
+
+    <item type="dimen" format="float" name="template_event_owner_chara_width">0.131429</item>
+    <integer name="template_event_owner_chara_resized_width">50</integer>
+    <item type="dimen" format="float" name="template_event_owner_chara_sampling_x">0.0190</item>
+    <item type="dimen" format="float" name="template_event_owner_chara_sampling_width">0.1428</item>
+    <item type="dimen" format="float" name="template_event_owner_chara_sampling_y">0.2762</item>
+    <item type="dimen" format="float" name="template_event_owner_chara_sampling_height">0.1428
+    </item>
 </resources>

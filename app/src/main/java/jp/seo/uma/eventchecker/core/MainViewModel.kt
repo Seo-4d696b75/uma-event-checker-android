@@ -53,6 +53,7 @@ class MainViewModel @Inject constructor(
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
         imgProcess.init(context)
+        repository.init(context)
     }
 
     fun setMetrics(manager: WindowManager) = setting.setMetrics(manager)
@@ -68,9 +69,14 @@ class MainViewModel @Inject constructor(
         runBlocking is used in order to call suspending style functions in blocking style
          */
         val start = SystemClock.uptimeMillis()
-        val bitmap = imgProcess.copyToBitmap(img)
-        val title = imgProcess.getEventTitle(bitmap)
-        repository.setEventTitle(title)
+        val mat = imgProcess.copyToBitmap(img).toMat()
+        val title = imgProcess.getEventTitle(mat)
+        repository.searchForEvent(title)?.let { events ->
+            val ownerName = if (events.size <= 1) null else {
+                imgProcess.getEventOwner(mat)
+            }
+            repository.setCurrentEvent(events, ownerName)
+        }
         val wait = start + setting.minUpdateInterval - SystemClock.uptimeMillis()
         if (wait > 0L) {
             Log.d("update", "wait $wait ms")

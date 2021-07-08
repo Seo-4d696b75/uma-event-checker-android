@@ -3,6 +3,7 @@ package jp.seo.uma.eventchecker.img
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.Image
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
@@ -10,7 +11,6 @@ import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
-import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat
@@ -44,6 +44,8 @@ class ImageProcess @Inject constructor(
     private lateinit var headerDetector: GameHeaderDetector
     private lateinit var eventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
+    private lateinit var charaEventOwnerDetector: TemplatesMatcher
+    private lateinit var supportEventOwnerDetector: TemplatesMatcher
 
     @MainThread
     suspend fun init(context: Context) {
@@ -52,7 +54,9 @@ class ImageProcess @Inject constructor(
         headerDetector = GameHeaderDetector(context)
         eventTypeDetector = EventTypeDetector(context)
         eventTitleCropper = EventTitleProcess(context)
-
+        val iconData = loadEventOwners(context)
+        charaEventOwnerDetector = getCharaEventOwnerDetector(context, iconData)
+        supportEventOwnerDetector = getSupportEventOwnerDetector(context, iconData)
         initialized.value = true
         _initialized = true
     }
@@ -81,31 +85,7 @@ class ImageProcess @Inject constructor(
             repository.capturedScreenHeight,
             Bitmap.Config.ARGB_8888
         )
-        bitmap.copyPixelsFromBuffer(plane.buffer)
-        return bitmap
-    }
-
-    fun getEventTitle(screen: Bitmap): String? {
-        if (!_initialized) return null
-        val img = cropContentArea(screen).toMat()
-        val isGame = headerDetector.detect(img)
-        Log.d("update", "target $isGame")
-        if (isGame) {
-            val type = eventTypeDetector.detect(img)
-            Log.d("update", "event type '${type.toString()}'")
-            if (type != null) {
-                val title = extractEventTitle(img)
-                Log.d("update", "event title '$title'")
-                _title.postValue(title)
-                return title
-            }
-        }
-        _title.postValue(null)
-        return null
-    }
-
-    private fun cropContentArea(bitmap: Bitmap): Bitmap {
-        // Remove area of status-bar and navigation-bar
+        bitmap.copyPixelsFromBuffer(plane.buffer)// Remove area of status-bar and navigation-bar
         val crop = Bitmap.createBitmap(
             bitmap,
             0,
@@ -117,9 +97,43 @@ class ImageProcess @Inject constructor(
         return crop
     }
 
+    private var eventType: EventType? = null
+
+    fun getEventTitle(img: Mat): String? {
+        if (!_initialized) return null
+        val isGame = headerDetector.detect(img)
+        Log.d("update", "target $isGame")
+        if (isGame) {
+            val type = eventTypeDetector.detect(img)
+            Log.d("update", "event type '${type.toString()}'")
+            if (type != null) {
+                val title = extractEventTitle(img)
+                Log.d("update", "event title '$title'")
+                _title.postValue(title)
+                eventType = type
+                return title
+            }
+        }
+        eventType = null
+        _title.postValue(null)
+        return null
+    }
+
+    suspend fun getEventOwner(img: Mat): String {
+        return when (eventType) {
+            EventType.Main -> "URA"
+            EventType.Support -> supportEventOwnerDetector.find(img).name
+            EventType.Chara -> charaEventOwnerDetector.find(img).name
+            null -> throw IllegalStateException("event type not found")
+        }
+    }
+
     private fun extractEventTitle(img: Mat): String {
+        val start = SystemClock.uptimeMillis()
         val target = eventTitleCropper.preProcess(img)
-        return extractText(target)
+        val title = extractText(target)
+        Log.d("OCR", "title: $title time: ${SystemClock.uptimeMillis() - start}ms")
+        return title
     }
 
     private fun extractText(img: Bitmap): String {
