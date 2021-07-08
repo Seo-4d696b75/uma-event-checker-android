@@ -10,10 +10,10 @@ import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
-import jp.seo.uma.eventchecker.core.getBitmap
-import jp.seo.uma.eventchecker.core.toGrayMat
+import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.opencv.core.Mat
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,10 +41,8 @@ class ImageProcess @Inject constructor(
     var hasInitialized: LiveData<Boolean> = initialized
     private lateinit var ocrApi: TessBaseAPI
 
-    private lateinit var headerDetector: TemplateDetector
-    private lateinit var charaEventDetector: EventTypeDetector
-    private lateinit var supportEventDetector: EventTypeDetector
-    private lateinit var mainEventTypeDetector: EventTypeDetector
+    private lateinit var headerDetector: GameHeaderDetector
+    private lateinit var eventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
 
     @MainThread
@@ -52,18 +50,7 @@ class ImageProcess @Inject constructor(
         if (_initialized) return
         loadData(context)
         headerDetector = GameHeaderDetector(context)
-        charaEventDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_chara.png").toGrayMat(),
-            context
-        )
-        supportEventDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_support.png").toGrayMat(),
-            context
-        )
-        mainEventTypeDetector = EventTypeDetector(
-            context.assets.getBitmap("template/event_main.png").toGrayMat(),
-            context
-        )
+        eventTypeDetector = EventTypeDetector(context)
         eventTitleCropper = EventTitleProcess(context)
 
         initialized.value = true
@@ -100,14 +87,14 @@ class ImageProcess @Inject constructor(
 
     fun getEventTitle(screen: Bitmap): String? {
         if (!_initialized) return null
-        val bitmap = cropContentArea(screen)
-        val isGame = headerDetector.detect(bitmap)
+        val img = cropContentArea(screen).toMat()
+        val isGame = headerDetector.detect(img)
         Log.d("update", "target $isGame")
         if (isGame) {
-            val type = detectEventType(bitmap)
+            val type = eventTypeDetector.detect(img)
             Log.d("update", "event type '${type.toString()}'")
             if (type != null) {
-                val title = extranctEventTitle(bitmap)
+                val title = extractEventTitle(img)
                 Log.d("update", "event title '$title'")
                 _title.postValue(title)
                 return title
@@ -130,18 +117,7 @@ class ImageProcess @Inject constructor(
         return crop
     }
 
-    private enum class EventType {
-        Main, Chara, Support
-    }
-
-    private fun detectEventType(img: Bitmap): EventType? {
-        if (charaEventDetector.detect(img)) return EventType.Chara
-        if (supportEventDetector.detect(img)) return EventType.Support
-        if (mainEventTypeDetector.detect(img)) return EventType.Main
-        return null
-    }
-
-    private fun extranctEventTitle(img: Bitmap): String {
+    private fun extractEventTitle(img: Mat): String {
         val target = eventTitleCropper.preProcess(img)
         return extractText(target)
     }
