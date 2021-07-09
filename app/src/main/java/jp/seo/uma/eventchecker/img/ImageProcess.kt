@@ -99,16 +99,21 @@ class ImageProcess @Inject constructor(
 
     private var eventType: EventType? = null
 
+    /**
+     * Gets event title from the screen image
+     *
+     * @param img bitmap of the screen without status-bar nor navigation-bar
+     */
     fun getEventTitle(img: Mat): String? {
         if (!_initialized) return null
         val isGame = headerDetector.detect(img)
-        Log.d("update", "target $isGame")
+        Log.d("Img", "check is-target $isGame")
         if (isGame) {
             val type = eventTypeDetector.detect(img)
-            Log.d("update", "event type '${type.toString()}'")
+            Log.d("Img", "event type '${type.toString()}'")
             if (type != null) {
                 val title = extractEventTitle(img)
-                Log.d("update", "event title '$title'")
+                Log.d("Img", "event title '$title'")
                 _title.postValue(title)
                 eventType = type
                 return title
@@ -119,6 +124,11 @@ class ImageProcess @Inject constructor(
         return null
     }
 
+    /**
+     * Gets what type event is now shown on the screen
+     *
+     * **Note** Be sure to call after [getEventTitle] returns non null value, or an exception will be thrown
+     */
     suspend fun getEventOwner(img: Mat): String {
         return when (eventType) {
             EventType.Main -> "URA"

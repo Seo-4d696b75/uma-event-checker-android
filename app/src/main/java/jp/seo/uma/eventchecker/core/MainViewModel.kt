@@ -77,10 +77,16 @@ class MainViewModel @Inject constructor(
             }
             repository.setCurrentEvent(events, ownerName)
         }
-        val wait = start + setting.minUpdateInterval - SystemClock.uptimeMillis()
+        val now = SystemClock.uptimeMillis()
+        val wait = start + setting.minUpdateInterval - now
         if (wait > 0L) {
-            Log.d("update", "wait $wait ms")
+            Log.d(
+                "ViewModel",
+                "update -> wait $wait ms (min-interval ${setting.minUpdateInterval} ms)"
+            )
             delay(wait)
+        } else {
+            Log.d("ViewModel", "update -> time ${now - start} ms")
         }
     }
 
