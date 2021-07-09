@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.TypedValue
 import androidx.annotation.DimenRes
-import androidx.annotation.IdRes
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
@@ -61,11 +60,33 @@ fun Mat.toBitmap(): Bitmap {
 }
 
 fun Resources.readFloat(@DimenRes id: Int): Float {
-    return if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         this.getFloat(id)
-    } else{
+    } else {
         val value = TypedValue()
         this.getValue(id, value, true)
         value.float
     }
+}
+
+private val PATTERN_REMOVAL = Regex("[\\p{P}\\p{S}\\s]")
+
+/**
+ * 文字列の比較検索のために正規化
+ *
+ * - OCRによる識別精度が低い記号類の無視
+ * - 数字の半角・全角の統一
+ */
+fun String.normalizeForComparison(): String {
+    return this.replace('０', '９', '0') // 数字は半角に統一
+        .replace('①', '⑨', '1') // Tesseractの数字
+        .replace(PATTERN_REMOVAL, "") // 空白・記号などは無視
+}
+
+private fun String.replace(start: Char, end: Char, replaceStart: Char): String {
+    return this.toCharArray().map { c ->
+        if (c in (start..end)) {
+            replaceStart + (c - start)
+        } else c
+    }.joinToString()
 }

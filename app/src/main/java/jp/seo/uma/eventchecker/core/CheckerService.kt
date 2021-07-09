@@ -134,7 +134,7 @@ class CheckerService : LifecycleService() {
 
         viewModel.currentEvent.observe(this) { event ->
             view.visibility = if (event == null) View.GONE else View.VISIBLE
-            textTitle.text = event?.eventTitle ?: "None"
+            textTitle.text = event?.title ?: "None"
             listChoice.adapter = event?.let {
                 EventChoiceAdapter(applicationContext, it.choices)
             }

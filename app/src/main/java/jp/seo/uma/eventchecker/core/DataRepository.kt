@@ -54,7 +54,7 @@ class DataRepository @Inject constructor() {
             val filter = events.filter { it.ownerName == ownerName }
             if (filter.isNotEmpty()) {
                 event = filter[0]
-                Log.d("EventData", "filtered size ${filter.size}, [0]-> ${event.eventTitle}")
+                Log.d("EventData", "filtered size ${filter.size}, [0]-> ${event.title}")
             } else {
                 Log.d("EventData", "no event remains after filter")
             }
@@ -70,13 +70,14 @@ class DataRepository @Inject constructor() {
             return if (title == null) {
                 emptyList()
             } else {
-                searchEventTitle(title)
+                searchEventTitle(title.normalizeForComparison())
             }
         }
         return null
     }
 
     private suspend fun searchEventTitle(title: String): List<GameEvent> {
+        Log.d("EventData", "normalized query '$title'")
         val score = Array<Float>(events.size) { 0f }
         calcTitleDistance(0, events.size, title, score)
         return score.maxOrNull()?.let { maxScore ->
@@ -84,7 +85,7 @@ class DataRepository @Inject constructor() {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
                 Log.d(
                     "EventData",
-                    "search -> max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
+                    "search -> max score $maxScore, size ${list.size}, events[0]: ${list[0].title}"
                 )
                 list
             } else {
@@ -117,7 +118,7 @@ class DataRepository @Inject constructor() {
             val algo = LevensteinDistance()
             (start until end).forEach { idx ->
                 val event = events[idx]
-                dst[idx] = algo.getDistance(event.eventTitle, query)
+                dst[idx] = algo.getDistance(event.normalizedTitle, query)
             }
         }
     }
@@ -127,42 +128,41 @@ class DataRepository @Inject constructor() {
 @Serializable
 data class GameEvent(
     @SerialName("e")
-    val eventTitle: String,
+    val title: String,
     @SerialName("n")
     val ownerName: String,
-    @SerialName("c")
-    val eventClass: String,
     @SerialName("k")
-    val eventTitleKana: String,
+    val titleKana: String,
     @SerialName("choices")
     val choices: Array<EventChoice>
 ) {
+
+    val normalizedTitle = title.normalizeForComparison()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as GameEvent
 
-        if (eventTitle != other.eventTitle) return false
+        if (title != other.title) return false
         if (ownerName != other.ownerName) return false
-        if (eventClass != other.eventClass) return false
-        if (eventTitleKana != other.eventTitleKana) return false
+        if (titleKana != other.titleKana) return false
         if (!choices.contentEquals(other.choices)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = eventTitle.hashCode()
+        var result = title.hashCode()
         result = 31 * result + ownerName.hashCode()
-        result = 31 * result + eventClass.hashCode()
-        result = 31 * result + eventTitleKana.hashCode()
+        result = 31 * result + titleKana.hashCode()
         result = 31 * result + choices.contentHashCode()
         return result
     }
 
     override fun toString(): String {
-        return "$eventTitle\n${
+        return "$title\n${
             choices.joinToString(
                 separator = "\n",
                 transform = EventChoice::toString

@@ -113,7 +113,6 @@ class ImageProcess @Inject constructor(
             Log.d("Img", "event type '${type.toString()}'")
             if (type != null) {
                 val title = extractEventTitle(img)
-                Log.d("Img", "event title '$title'")
                 _title.postValue(title)
                 eventType = type
                 return title
@@ -149,7 +148,7 @@ class ImageProcess @Inject constructor(
     private fun extractText(img: Bitmap): String {
         ocrApi.setImage(img)
         val text = ocrApi.utF8Text
-        return text.replace(Regex("[\\s　]+"), "")
+        return text.replace(Regex("\\s+"), "")
     }
 
 
