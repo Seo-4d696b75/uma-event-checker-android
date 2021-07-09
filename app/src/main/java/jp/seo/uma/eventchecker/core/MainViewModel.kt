@@ -2,6 +2,7 @@ package jp.seo.uma.eventchecker.core
 
 import android.content.Context
 import android.media.Image
+import android.media.projection.MediaProjection
 import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val repository: DataRepository,
     private val imgProcess: ImageProcess,
-    private val setting: SettingRepository
+    private val setting: SettingRepository,
+    private val capture: ScreenCapture,
 ) : ViewModel() {
 
     companion object {
@@ -31,12 +33,13 @@ class MainViewModel @Inject constructor(
             store: ViewModelStore,
             repository: DataRepository,
             process: ImageProcess,
-            setting: SettingRepository
+            setting: SettingRepository,
+            capture: ScreenCapture
         ): MainViewModel {
             val factory = object : ViewModelProvider.Factory {
                 @SuppressWarnings("unchecked_cast")
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val obj = MainViewModel(repository, process, setting)
+                    val obj = MainViewModel(repository, process, setting, capture)
                     return obj as T
                 }
             }
@@ -88,6 +91,16 @@ class MainViewModel @Inject constructor(
         } else {
             Log.d("ViewModel", "update -> time ${now - start} ms")
         }
+    }
+
+    fun startCapture(projection: MediaProjection) = capture.start(projection)
+
+    fun stopCapture() = capture.stop()
+
+    val runningCapture = capture.running
+
+    fun setScreenCallback(callback: ((Image) -> Unit)) {
+        capture.callback = callback
     }
 
 }

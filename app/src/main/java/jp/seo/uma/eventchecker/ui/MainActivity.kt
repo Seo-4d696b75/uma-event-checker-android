@@ -16,11 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.CheckerService
 import jp.seo.uma.eventchecker.core.MainViewModel
-import jp.seo.uma.eventchecker.core.ScreenCapture
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import javax.inject.Inject
 
 /**
  * ユーザとのインタラクションが必要な処理
@@ -36,9 +34,6 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_CAPTURE = 33333
         const val REQUEST_OVERLAY = 44444
     }
-
-    @Inject
-    lateinit var capture: ScreenCapture
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -75,14 +70,14 @@ class MainActivity : AppCompatActivity() {
             button.isEnabled = !it
         }
 
-        capture.running.observe(this) {
+        viewModel.runningCapture.observe(this) {
             message.text =
                 getString(if (it) R.string.message_main_running else R.string.message_main_idle)
             button.text = getString(if (it) R.string.button_stop else R.string.button_start)
         }
 
         button.setOnClickListener {
-            when (capture.running.value) {
+            when (viewModel.runningCapture.value) {
                 true -> stopService()
                 else -> startService()
             }
@@ -125,7 +120,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopService() {
-        capture.stop()
+        viewModel.stopCapture()
         val intent = Intent(this, CheckerService::class.java)
         stopService(intent)
     }
@@ -138,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, CheckerService::class.java)
                 startForegroundService(intent)
                 val projection = projectionManager.getMediaProjection(resultCode, data)
-                capture.start(projection)
+                viewModel.startCapture(projection)
             } else {
                 Toast.makeText(this, "fail to get capture", Toast.LENGTH_SHORT).show()
                 finish()

@@ -96,6 +96,7 @@ class ScreenCapture @Inject constructor(
         thread?.quit()
         thread = null
         _running.value = false
+        callback = null
     }
 
 }
