@@ -99,7 +99,7 @@ fun getCharaEventOwnerDetector(context: Context, data: EventOwners): TemplatesMa
         val extension = owner.icon.substring(idx, owner.icon.length)
         val file = "${name}_e${extension}"
         if (files.contains(file)) {
-            val icon2 = manager.getBitmap(file)
+            val icon2 = manager.getBitmap("icon/$file")
             TemplateHolder(owner.name, listOf(icon1, icon2), resizedWidth)
 
         } else {
