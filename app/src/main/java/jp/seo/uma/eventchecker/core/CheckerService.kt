@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -134,7 +133,6 @@ class CheckerService : LifecycleService() {
 
 
         viewModel.currentEvent.observe(this) { event ->
-            Log.d("service", event?.eventTitle ?: "none")
             view.visibility = if (event == null) View.GONE else View.VISIBLE
             textTitle.text = event?.eventTitle ?: "None"
             listChoice.adapter = event?.let {

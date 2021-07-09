@@ -54,9 +54,9 @@ class DataRepository @Inject constructor() {
             val filter = events.filter { it.ownerName == ownerName }
             if (filter.isNotEmpty()) {
                 event = filter[0]
-                Log.d("Event", "filtered size: ${filter.size} [0]: ${event.eventTitleKana}")
+                Log.d("EventData", "filtered size ${filter.size}, [0]-> ${event.eventTitle}")
             } else {
-                Log.d("Event", "no event remains after filter")
+                Log.d("EventData", "no event remains after filter")
             }
             _currentEvent.postValue(event)
         }
@@ -83,14 +83,14 @@ class DataRepository @Inject constructor() {
             if (maxScore > ocrThreshold) {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
                 Log.d(
-                    "search",
-                    "max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
+                    "EventData",
+                    "search -> max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
                 )
                 list
             } else {
                 Log.d(
-                    "search",
-                    "max score: $maxScore < th: $ocrThreshold"
+                    "EventData",
+                    "search -> max score: $maxScore < th: $ocrThreshold"
                 )
                 null
             }
