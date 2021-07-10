@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.view
 
 import android.content.Context
 import android.content.res.ColorStateList

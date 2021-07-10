@@ -8,8 +8,8 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
-import jp.seo.uma.eventchecker.core.SettingRepository
-import jp.seo.uma.eventchecker.core.copyAssetsToFiles
+import jp.seo.uma.eventchecker.copyAssetsToFiles
+import jp.seo.uma.eventchecker.model.SettingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat

@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.view
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,8 +18,11 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.core.DataRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.ui.EventChoiceAdapter
+import jp.seo.uma.eventchecker.model.SettingRepository
+import jp.seo.uma.eventchecker.viewmodel.MainViewModel
+import jp.seo.uma.eventchecker.viewmodel.ScreenCapture
 import javax.inject.Inject
 
 /**

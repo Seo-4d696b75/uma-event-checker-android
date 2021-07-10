@@ -2,8 +2,7 @@ package jp.seo.uma.eventchecker.img
 
 import android.content.Context
 import android.graphics.Bitmap
-import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.*
+import jp.seo.uma.eventchecker.*
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.round

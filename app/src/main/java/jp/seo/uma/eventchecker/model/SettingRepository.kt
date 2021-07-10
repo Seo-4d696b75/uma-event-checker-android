@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.model
 
 import android.content.Context
 import android.graphics.Point
@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.WindowManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.readFloat
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.viewmodel
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,6 +13,7 @@ import android.os.HandlerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
+import jp.seo.uma.eventchecker.model.SettingRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.view
 
 import android.app.Service
 import android.content.Intent
@@ -14,8 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.CheckerService
-import jp.seo.uma.eventchecker.core.MainViewModel
+import jp.seo.uma.eventchecker.viewmodel.MainViewModel
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader

@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

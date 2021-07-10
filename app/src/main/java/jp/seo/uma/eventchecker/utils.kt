@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker
 
 import android.content.Context
 import android.content.res.AssetManager
@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.TypedValue
 import androidx.annotation.DimenRes
-import androidx.annotation.IdRes
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc

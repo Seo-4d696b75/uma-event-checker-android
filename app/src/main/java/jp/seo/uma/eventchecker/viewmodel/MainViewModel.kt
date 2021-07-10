@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.viewmodel
 
 import android.content.Context
 import android.media.Image
@@ -9,7 +9,10 @@ import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.seo.uma.eventchecker.core.DataRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
+import jp.seo.uma.eventchecker.model.SettingRepository
+import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
