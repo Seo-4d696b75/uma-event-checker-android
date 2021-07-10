@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -24,20 +23,17 @@ import javax.inject.Singleton
  * @version 2021/07/04.
  */
 @Singleton
-class DataRepository @Inject constructor(
-    @ApplicationContext context: Context
-) {
+class DataRepository @Inject constructor() {
 
     companion object {
         const val DATA_FILE = "event.json"
     }
 
-    private val events: Array<GameEvent>
-    private val ocrThreshold: Float
+    private lateinit var events: Array<GameEvent>
+    private var ocrThreshold: Float = 0.5f
     private val _currentEvent = MutableLiveData<GameEvent?>(null)
 
-
-    init {
+    suspend fun init(context: Context) = withContext(Dispatchers.IO) {
         val manager = context.resources.assets
         manager.open(DATA_FILE).use { reader ->
             val str = reader.readBytes().toString(Charsets.UTF_8)
@@ -70,7 +66,7 @@ class DataRepository @Inject constructor(
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
                 Log.d(
                     "search",
-                    "max score: $maxScore size: ${list.size} events[0]: ${list[0].eventTitle}"
+                    "max score: $maxScore size: ${list.size} events[0]: ${list[0].title}"
                 )
                 list[0]
             } else {
@@ -103,7 +99,7 @@ class DataRepository @Inject constructor(
             val algo = LevensteinDistance()
             (start until end).forEach { idx ->
                 val event = events[idx]
-                dst[idx] = algo.getDistance(event.eventTitle, query)
+                dst[idx] = algo.getDistance(event.title, query)
             }
         }
     }
@@ -113,13 +109,11 @@ class DataRepository @Inject constructor(
 @Serializable
 data class GameEvent(
     @SerialName("e")
-    val eventTitle: String,
+    val title: String,
     @SerialName("n")
     val ownerName: String,
-    @SerialName("c")
-    val eventClass: String,
     @SerialName("k")
-    val eventTitleKana: String,
+    val titleKana: String,
     @SerialName("choices")
     val choices: Array<EventChoice>
 ) {
@@ -129,26 +123,24 @@ data class GameEvent(
 
         other as GameEvent
 
-        if (eventTitle != other.eventTitle) return false
+        if (title != other.title) return false
         if (ownerName != other.ownerName) return false
-        if (eventClass != other.eventClass) return false
-        if (eventTitleKana != other.eventTitleKana) return false
+        if (titleKana != other.titleKana) return false
         if (!choices.contentEquals(other.choices)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = eventTitle.hashCode()
+        var result = title.hashCode()
         result = 31 * result + ownerName.hashCode()
-        result = 31 * result + eventClass.hashCode()
-        result = 31 * result + eventTitleKana.hashCode()
+        result = 31 * result + titleKana.hashCode()
         result = 31 * result + choices.contentHashCode()
         return result
     }
 
     override fun toString(): String {
-        return "$eventTitle\n${
+        return "$title\n${
             choices.joinToString(
                 separator = "\n",
                 transform = EventChoice::toString

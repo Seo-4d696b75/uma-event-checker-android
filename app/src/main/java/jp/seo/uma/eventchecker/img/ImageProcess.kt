@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
-import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat
@@ -82,12 +81,20 @@ class ImageProcess @Inject constructor(
             Bitmap.Config.ARGB_8888
         )
         bitmap.copyPixelsFromBuffer(plane.buffer)
-        return bitmap
+        // Remove area of status-bar and navigation-bar
+        val crop = Bitmap.createBitmap(
+            bitmap,
+            0,
+            repository.capturedStatusBarHeight,
+            repository.capturedScreenWidth,
+            repository.capturedContentHeight
+        )
+        bitmap.recycle()
+        return crop
     }
 
-    fun getEventTitle(screen: Bitmap): String? {
+    fun getEventTitle(img: Mat): String? {
         if (!_initialized) return null
-        val img = cropContentArea(screen).toMat()
         val isGame = headerDetector.detect(img)
         Log.d("update", "target $isGame")
         if (isGame) {
@@ -102,19 +109,6 @@ class ImageProcess @Inject constructor(
         }
         _title.postValue(null)
         return null
-    }
-
-    private fun cropContentArea(bitmap: Bitmap): Bitmap {
-        // Remove area of status-bar and navigation-bar
-        val crop = Bitmap.createBitmap(
-            bitmap,
-            0,
-            repository.capturedStatusBarHeight,
-            repository.capturedScreenWidth,
-            repository.capturedContentHeight
-        )
-        bitmap.recycle()
-        return crop
     }
 
     private fun extractEventTitle(img: Mat): String {

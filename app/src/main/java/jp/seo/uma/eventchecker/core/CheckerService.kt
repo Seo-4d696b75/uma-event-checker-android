@@ -57,7 +57,7 @@ class CheckerService : LifecycleService() {
     private var view: View? = null
 
     private val viewModel: MainViewModel by lazy {
-        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess, setting)
+        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess, setting, capture)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -100,7 +100,7 @@ class CheckerService : LifecycleService() {
                 .build()
         startForeground(NOTIFICATION_TAG, notification)
 
-        capture.callback = {
+        viewModel.setScreenCallback {
             viewModel.updateScreen(it)
         }
 
@@ -134,9 +134,9 @@ class CheckerService : LifecycleService() {
 
 
         viewModel.currentEvent.observe(this) { event ->
-            Log.d("service", event?.eventTitle ?: "none")
+            Log.d("service", event?.title ?: "none")
             view.visibility = if (event == null) View.GONE else View.VISIBLE
-            textTitle.text = event?.eventTitle ?: "None"
+            textTitle.text = event?.title ?: "None"
             listChoice.adapter = event?.let {
                 EventChoiceAdapter(applicationContext, it.choices)
             }
@@ -145,8 +145,7 @@ class CheckerService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        capture.stop()
-        capture.callback = null
+        viewModel.stopCapture()
         view?.let {
             manager.removeView(it)
             view = null

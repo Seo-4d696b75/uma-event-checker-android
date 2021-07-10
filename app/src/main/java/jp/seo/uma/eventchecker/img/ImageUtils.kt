@@ -51,6 +51,11 @@ class EventTitleProcess(context: Context) : ScreenCropper(
     }
 }
 
+/**
+ * @constructor
+ *
+ * @param originW テンプレート画像のスケールにおける全体画面の幅
+ */
 abstract class TemplateMatcher(
     samplingX: Float,
     samplingY: Float,

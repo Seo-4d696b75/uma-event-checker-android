@@ -2,6 +2,7 @@ package jp.seo.uma.eventchecker.core
 
 import android.content.Context
 import android.media.Image
+import android.media.projection.MediaProjection
 import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val repository: DataRepository,
     private val imgProcess: ImageProcess,
-    private val setting: SettingRepository
+    private val setting: SettingRepository,
+    private val capture: ScreenCapture,
 ) : ViewModel() {
 
     companion object {
@@ -31,12 +33,13 @@ class MainViewModel @Inject constructor(
             store: ViewModelStore,
             repository: DataRepository,
             process: ImageProcess,
-            setting: SettingRepository
+            setting: SettingRepository,
+            capture: ScreenCapture
         ): MainViewModel {
             val factory = object : ViewModelProvider.Factory {
                 @SuppressWarnings("unchecked_cast")
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val obj = MainViewModel(repository, process, setting)
+                    val obj = MainViewModel(repository, process, setting, capture)
                     return obj as T
                 }
             }
@@ -53,6 +56,7 @@ class MainViewModel @Inject constructor(
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
         imgProcess.init(context)
+        repository.init(context)
     }
 
     fun setMetrics(manager: WindowManager) = setting.setMetrics(manager)
@@ -68,14 +72,24 @@ class MainViewModel @Inject constructor(
         runBlocking is used in order to call suspending style functions in blocking style
          */
         val start = SystemClock.uptimeMillis()
-        val bitmap = imgProcess.copyToBitmap(img)
-        val title = imgProcess.getEventTitle(bitmap)
+        val mat = imgProcess.copyToBitmap(img).toMat()
+        val title = imgProcess.getEventTitle(mat)
         repository.setEventTitle(title)
         val wait = start + setting.minUpdateInterval - SystemClock.uptimeMillis()
         if (wait > 0L) {
             Log.d("update", "wait $wait ms")
             delay(wait)
         }
+    }
+
+    fun startCapture(projection: MediaProjection) = capture.start(projection)
+
+    fun stopCapture() = capture.stop()
+
+    val runningCapture = capture.running
+
+    fun setScreenCallback(callback: ((Image) -> Unit)) {
+        capture.callback = callback
     }
 
 }
