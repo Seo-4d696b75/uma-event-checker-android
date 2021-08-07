@@ -137,7 +137,14 @@ data class GameEvent(
     val choices: Array<EventChoice>
 ) {
 
-    val normalizedTitle = title.normalizeForComparison()
+    companion object {
+        private val pattern = Regex("(?<origin>レース.+?)\\([0-9].+?\\)")
+    }
+
+    // titleテキストに一部実際に表示されない文字が含まれる
+    val normalizedTitle: String = pattern.matchEntire(title).let { matcher ->
+        matcher?.let { it.groupValues[0] } ?: title
+    }.normalizeForComparison()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
