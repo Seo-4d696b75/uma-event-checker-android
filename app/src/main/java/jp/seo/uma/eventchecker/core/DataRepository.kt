@@ -127,11 +127,11 @@ class DataRepository @Inject constructor() {
 
 @Serializable
 data class GameEvent(
-    @SerialName("e")
+    @SerialName("title")
     val title: String,
-    @SerialName("n")
+    @SerialName("owner")
     val ownerName: String,
-    @SerialName("k")
+    @SerialName("title_kana")
     val titleKana: String,
     @SerialName("choices")
     val choices: Array<EventChoice>
@@ -180,9 +180,9 @@ data class GameEvent(
 
 @Serializable
 data class EventChoice(
-    @SerialName("n")
+    @SerialName("name")
     val name: String,
-    @SerialName("t")
+    @SerialName("message")
     val message: String
 ) {
     override fun toString(): String {
@@ -194,3 +194,56 @@ data class EventChoice(
         return lines.joinToString(separator = separator)
     }
 }
+
+
+@Serializable
+data class SupportEventOwner(
+    @SerialName("name")
+    val name: String,
+    @SerialName("type")
+    val type: String,
+    @SerialName("icon")
+    val icon: String
+)
+
+@Serializable
+data class CharaEventOwner(
+    @SerialName("name")
+    val name: String,
+    @SerialName("icon")
+    val icon: Array<String>
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CharaEventOwner
+
+        if (name != other.name) return false
+        if (!icon.contentEquals(other.icon)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + icon.contentHashCode()
+        return result
+    }
+}
+
+@Serializable
+class EventOwners(
+    @SerialName("chara")
+    val charaEventOwners: Array<CharaEventOwner>,
+    @SerialName("support")
+    val supportEventOwners: Array<SupportEventOwner>
+)
+
+@Serializable
+class GameEventData(
+    @SerialName("event")
+    val events: Array<GameEvent>,
+    @SerialName("owner")
+    val owners: EventOwners
+)

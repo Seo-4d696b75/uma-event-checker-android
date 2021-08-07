@@ -5,14 +5,13 @@ import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.core.EventOwners
 import jp.seo.uma.eventchecker.core.getBitmap
 import jp.seo.uma.eventchecker.core.readFloat
 import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.opencv.core.Mat
@@ -91,20 +90,11 @@ fun getCharaEventOwnerDetector(context: Context, data: EventOwners): TemplatesMa
     val manager = context.resources.assets
     val resizedWidth =
         context.resources.getInteger(R.integer.template_event_owner_chara_resized_width)
-    val files = manager.list("icon") ?: throw RuntimeException("fail to grab icon template files")
     val templates = data.charaEventOwners.map { owner ->
-        val icon1 = manager.getBitmap("icon/${owner.icon}")
-        val idx = owner.icon.lastIndexOf(".")
-        val name = owner.icon.substring(0, idx)
-        val extension = owner.icon.substring(idx, owner.icon.length)
-        val file = "${name}_e${extension}"
-        if (files.contains(file)) {
-            val icon2 = manager.getBitmap("icon/$file")
-            TemplateHolder(owner.name, listOf(icon1, icon2), resizedWidth)
-
-        } else {
-            TemplateHolder(owner.name, listOf(icon1), resizedWidth)
-        }
+        val icons = owner.icon.map {
+            manager.getBitmap("icon/${it}")
+        }.toList()
+        TemplateHolder(owner.name, icons, resizedWidth)
     }
     return TemplatesMatcher(
         context.resources.readFloat(R.dimen.template_event_owner_chara_sampling_x),
@@ -143,28 +133,3 @@ fun loadEventOwners(context: Context): EventOwners {
     }
 }
 
-@Serializable
-data class SupportEventOwner(
-    @SerialName("n")
-    val name: String,
-    @SerialName("l")
-    val type: String,
-    @SerialName("i")
-    val icon: String
-)
-
-@Serializable
-data class CharaEventOwner(
-    @SerialName("n")
-    val name: String,
-    @SerialName("i")
-    val icon: String
-)
-
-@Serializable
-class EventOwners(
-    @SerialName("chara")
-    val charaEventOwners: Array<CharaEventOwner>,
-    @SerialName("support")
-    val supportEventOwners: Array<SupportEventOwner>
-)
