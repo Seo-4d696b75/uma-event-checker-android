@@ -21,6 +21,10 @@
     <item type="dimen" format="float" name="ocr_title_sampling_width">0.55</item>
     <item type="dimen" format="float" name="ocr_title_sampling_y">0.33</item>
     <item type="dimen" format="float" name="ocr_title_sampling_height">0.065</item>
+    <item type="dimen" format="float" name="ocr_title_clothes_icon_sampling_x">0.01</item>
+    <integer name="ocr_title_clothes_icon_sampling_width_pixel">2</integer>
+    <integer name="ocr_title_clothes_icon_threshold">200</integer>
+    <item type="dimen" format="float" name="ocr_title_resampling_offset_x">0.065</item>
 
     <item type="dimen" format="float" name="ocr_title_threshold">0.5</item>
 

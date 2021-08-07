@@ -112,7 +112,7 @@ class ImageProcess @Inject constructor(
             val type = eventTypeDetector.detect(img)
             Log.d("Img", "event type '${type.toString()}'")
             if (type != null) {
-                val title = extractEventTitle(img)
+                val title = extractEventTitle(img, type)
                 _title.postValue(title)
                 eventType = type
                 return title
@@ -137,9 +137,9 @@ class ImageProcess @Inject constructor(
         }
     }
 
-    private fun extractEventTitle(img: Mat): String {
+    private fun extractEventTitle(img: Mat, type: EventType): String {
         val start = SystemClock.uptimeMillis()
-        val target = eventTitleCropper.preProcess(img)
+        val target = eventTitleCropper.preProcess(img, type)
         val title = extractText(target)
         Log.d("OCR", "title: $title time: ${SystemClock.uptimeMillis() - start}ms")
         return title

@@ -2,6 +2,7 @@ package jp.seo.uma.eventchecker.img
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.*
 import org.opencv.core.*
@@ -37,10 +38,30 @@ class EventTitleProcess(context: Context) : ScreenCropper(
     context.resources.readFloat(R.dimen.ocr_title_sampling_width),
     context.resources.readFloat(R.dimen.ocr_title_sampling_height)
 ) {
-    fun preProcess(img: Mat): Bitmap {
+
+    private val samplingX = context.resources.readFloat(R.dimen.ocr_title_clothes_icon_sampling_x)
+    private val samplingWidth =
+        context.resources.getInteger(R.integer.ocr_title_clothes_icon_sampling_width_pixel)
+    private val threshold = context.resources.getInteger(R.integer.ocr_title_clothes_icon_threshold)
+    private val resamplingOffset =
+        context.resources.readFloat(R.dimen.ocr_title_resampling_offset_x)
+
+    fun preProcess(img: Mat, type: EventType): Bitmap {
         val crop = crop(img)
-        val gray = Mat()
+        var gray = Mat()
         Imgproc.cvtColor(crop, gray, Imgproc.COLOR_BGR2GRAY)
+        if (type == EventType.Chara) {
+            val x = (img.width() * samplingX).toInt()
+            val rect = Rect(x, 0, samplingWidth, gray.height())
+            val sample = Mat(gray, rect)
+            val avg = Core.sumElems(sample).`val`[0] / (rect.height * rect.width)
+            if (avg > threshold) {
+                Log.d("EventTitle", "clothes icon removed")
+                val offset = (img.width() * resamplingOffset).toInt()
+                val size = Rect(offset, 0, gray.width() - offset, gray.height())
+                gray = Mat(gray, size)
+            }
+        }
         val size = Size(
             gray.width() * 2.0,
             gray.height() * 2.0
