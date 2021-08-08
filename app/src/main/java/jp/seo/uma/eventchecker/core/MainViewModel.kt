@@ -1,12 +1,10 @@
 package jp.seo.uma.eventchecker.core
 
-import android.content.Context
 import android.media.Image
 import android.media.projection.MediaProjection
 import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
-import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
@@ -49,14 +47,42 @@ class MainViewModel @Inject constructor(
 
     val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
 
+    val update = LiveEvent<EventDataInfo>()
+    val error = LiveEvent<Exception>()
+
     val ocrText = imgProcess.title
 
     val currentEvent = repository.currentEvent
 
-    @MainThread
-    fun init(context: Context) = viewModelScope.launch {
-        imgProcess.init(context)
-        repository.init(context)
+    fun checkDataUpdate() = viewModelScope.launch {
+        try {
+            val info = repository.checkUpdate()
+            if (info == null) {
+                loadData()
+            } else {
+                update.call(info)
+            }
+        } catch (e: Exception) {
+            error.call(e)
+        }
+    }
+
+    fun updateData(info: EventDataInfo) = viewModelScope.launch {
+        try {
+            repository.updateData(info)
+            imgProcess.init()
+        } catch (e: Exception) {
+            error.call(e)
+        }
+    }
+
+    fun loadData() = viewModelScope.launch {
+        try {
+            repository.loadData()
+            imgProcess.init()
+        } catch (e: Exception) {
+            error.call(e)
+        }
     }
 
     fun setMetrics(manager: WindowManager) = setting.setMetrics(manager)

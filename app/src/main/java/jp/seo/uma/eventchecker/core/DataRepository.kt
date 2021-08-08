@@ -1,18 +1,20 @@
 package jp.seo.uma.eventchecker.core
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.apache.lucene.search.spell.LevensteinDistance
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,23 +25,73 @@ import javax.inject.Singleton
  * @version 2021/07/04.
  */
 @Singleton
-class DataRepository @Inject constructor() {
+class DataRepository @Inject constructor(
+    @ApplicationContext
+    private val context: Context,
+    private val network: DataNetwork
+) {
 
     companion object {
-        const val DATA_FILE = "event.json"
+        const val DATA_FILE = "data.json"
+        const val KEY_DATA_VERSION = "data_version"
     }
 
-    private lateinit var events: Array<GameEvent>
-    private var ocrThreshold: Float = 0.5f
+    private var events: Array<GameEvent> = emptyArray()
+    private var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
+    private var ocrThreshold: Float = context.resources.readFloat(R.dimen.ocr_title_threshold)
     private val _currentEvent = MutableLiveData<GameEvent?>(null)
+    private val _initialized = MutableLiveData(false)
 
-    suspend fun init(context: Context) = withContext(Dispatchers.IO) {
-        val manager = context.resources.assets
-        manager.open(DATA_FILE).use { reader ->
-            val str = reader.readBytes().toString(Charsets.UTF_8)
-            events = Json { ignoreUnknownKeys = true }.decodeFromString(str)
+    private val preferences = context.getSharedPreferences("main", MODE_PRIVATE)
+
+    var dataVersion = preferences.getLong(KEY_DATA_VERSION, 0L)
+        private set(value) {
+            if (field == value) return
+            field = value
+            preferences.edit().also {
+                it.putLong(KEY_DATA_VERSION, value)
+                it.apply()
+            }
         }
-        ocrThreshold = context.resources.readFloat(R.dimen.ocr_title_threshold)
+
+    suspend fun checkUpdate(): EventDataInfo? = withContext(Dispatchers.IO) {
+        val info = network.getDataInfo()
+        if (info.version > dataVersion) {
+            info
+        } else null
+    }
+
+    suspend fun updateData(info: EventDataInfo) = withContext(Dispatchers.IO) {
+        val data = network.getData()
+        events = data.events
+        eventOwners = data.owners
+        val dir = context.filesDir
+        File(dir, DATA_FILE).writeText(Json.encodeToString(data), Charsets.UTF_8)
+        val iconDir = File(dir, "icon")
+        if (!iconDir.exists() || !iconDir.isDirectory) {
+            if (!iconDir.mkdir()) {
+                throw RuntimeException("fail to mkdir: $iconDir")
+            }
+        }
+        val icons = mutableListOf<String>()
+        data.owners.supportEventOwners.forEach { icons.add(it.icon) }
+        data.owners.charaEventOwners.forEach { icons.addAll(it.icon) }
+        icons.filter { !File(iconDir, it).exists() }.forEach {
+            val res = network.getIconImage(it)
+            res.saveFile(File(iconDir, it))
+        }
+        dataVersion = info.version
+        _initialized.postValue(true)
+    }
+
+    suspend fun loadData() = withContext(Dispatchers.IO) {
+        val file = File(context.filesDir, DATA_FILE)
+        if (!file.exists() || !file.isFile) throw IllegalStateException("event data not initialized yet")
+        val str = file.readText(Charsets.UTF_8)
+        val data = Json { ignoreUnknownKeys = true }.decodeFromString<GameEventData>(str)
+        events = data.events
+        eventOwners = data.owners
+        _initialized.postValue(true)
     }
 
     private var eventTitle: String? = null
@@ -63,6 +115,7 @@ class DataRepository @Inject constructor() {
     }
 
     val currentEvent: LiveData<GameEvent?> = _currentEvent
+    val initialized: LiveData<Boolean> = _initialized
 
     suspend fun searchForEvent(title: String?): List<GameEvent>? {
         if (eventTitle != title) {
@@ -103,7 +156,7 @@ class DataRepository @Inject constructor() {
         end: Int,
         query: String,
         dst: Array<Float>
-    ): Unit = withContext(Dispatchers.IO) {
+    ): Unit = withContext(Dispatchers.Default) {
         if (start + 64 < end) {
             val mid = start + (end - start) / 2
             val left = async {
@@ -124,126 +177,3 @@ class DataRepository @Inject constructor() {
     }
 
 }
-
-@Serializable
-data class GameEvent(
-    @SerialName("title")
-    val title: String,
-    @SerialName("owner")
-    val ownerName: String,
-    @SerialName("title_kana")
-    val titleKana: String,
-    @SerialName("choices")
-    val choices: Array<EventChoice>
-) {
-
-    companion object {
-        private val pattern = Regex("(?<origin>レース.+?)\\([0-9].+?\\)")
-    }
-
-    // titleテキストに一部実際に表示されない文字が含まれる
-    val normalizedTitle: String = pattern.matchEntire(title).let { matcher ->
-        matcher?.let { it.groupValues[0] } ?: title
-    }.normalizeForComparison()
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GameEvent
-
-        if (title != other.title) return false
-        if (ownerName != other.ownerName) return false
-        if (titleKana != other.titleKana) return false
-        if (!choices.contentEquals(other.choices)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = title.hashCode()
-        result = 31 * result + ownerName.hashCode()
-        result = 31 * result + titleKana.hashCode()
-        result = 31 * result + choices.contentHashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "$title\n${
-            choices.joinToString(
-                separator = "\n",
-                transform = EventChoice::toString
-            )
-        }"
-    }
-}
-
-@Serializable
-data class EventChoice(
-    @SerialName("name")
-    val name: String,
-    @SerialName("message")
-    val message: String
-) {
-    override fun toString(): String {
-        return "- $name\n  ${formatMessage("\n  ")}"
-    }
-
-    fun formatMessage(separator: String = "\n"): String {
-        val lines = message.split("[br]", "<hr>")
-        return lines.joinToString(separator = separator)
-    }
-}
-
-
-@Serializable
-data class SupportEventOwner(
-    @SerialName("name")
-    val name: String,
-    @SerialName("type")
-    val type: String,
-    @SerialName("icon")
-    val icon: String
-)
-
-@Serializable
-data class CharaEventOwner(
-    @SerialName("name")
-    val name: String,
-    @SerialName("icon")
-    val icon: Array<String>
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as CharaEventOwner
-
-        if (name != other.name) return false
-        if (!icon.contentEquals(other.icon)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + icon.contentHashCode()
-        return result
-    }
-}
-
-@Serializable
-class EventOwners(
-    @SerialName("chara")
-    val charaEventOwners: Array<CharaEventOwner>,
-    @SerialName("support")
-    val supportEventOwners: Array<SupportEventOwner>
-)
-
-@Serializable
-class GameEventData(
-    @SerialName("event")
-    val events: Array<GameEvent>,
-    @SerialName("owner")
-    val owners: EventOwners
-)

@@ -9,6 +9,7 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class ImageProcess @Inject constructor(
-    private val repository: SettingRepository
+    private val repository: SettingRepository,
+    @ApplicationContext private val context: Context
 ) {
 
     companion object {
@@ -48,9 +50,9 @@ class ImageProcess @Inject constructor(
     private lateinit var supportEventOwnerDetector: TemplatesMatcher
 
     @MainThread
-    suspend fun init(context: Context) {
+    suspend fun init() {
         if (_initialized) return
-        loadData(context)
+        loadData()
         headerDetector = GameHeaderDetector(context)
         eventTypeDetector = EventTypeDetector(context)
         eventTitleCropper = EventTitleProcess(context)
@@ -61,7 +63,7 @@ class ImageProcess @Inject constructor(
         _initialized = true
     }
 
-    private suspend fun loadData(context: Context) = withContext(Dispatchers.IO) {
+    private suspend fun loadData() = withContext(Dispatchers.IO) {
         val dir = File(context.filesDir, OCR_DATA_DIR)
         if (!dir.exists() || !dir.isDirectory) {
             if (!dir.mkdir()) {

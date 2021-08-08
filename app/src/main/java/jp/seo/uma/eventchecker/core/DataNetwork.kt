@@ -7,8 +7,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.Path
+import java.text.StringCharacterIterator
 
 /**
  * @author Seo-4d696b75
@@ -20,6 +23,9 @@ interface DataNetwork {
 
     @GET("data.json")
     suspend fun getData(): GameEventData
+
+    @GET("icon/{file_name}")
+    suspend fun getIconImage(@Path("file_name") name: String): ResponseBody
 }
 
 @ExperimentalSerializationApi
@@ -41,4 +47,17 @@ data class EventDataInfo(
     val version: Long,
     @SerialName("size")
     val size: Long
-)
+) {
+
+    fun fileSize(): String {
+        var bytes = size
+        if (bytes < 0) return "0 B"
+        if (bytes < 1000) return "$bytes B"
+        val ci = StringCharacterIterator("KMGTPE")
+        while (bytes >= 999_950) {
+            bytes /= 1000
+            ci.next()
+        }
+        return String.format("%.1f %cB", bytes.toFloat() / 1000.0f, ci.current())
+    }
+}
