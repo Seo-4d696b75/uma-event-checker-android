@@ -54,6 +54,12 @@ class MainViewModel @Inject constructor(
 
     val currentEvent = repository.currentEvent
 
+    /**
+     * Checks if newer data exists or not
+     *
+     * [update] will be update with a data info if newer version found.
+     * If not, [loadData] will be done
+     */
     fun checkDataUpdate() = viewModelScope.launch {
         try {
             val info = repository.checkUpdate()
@@ -67,6 +73,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Gets new data from network and init data
+     */
     fun updateData(info: EventDataInfo) = viewModelScope.launch {
         try {
             repository.updateData(info)
@@ -76,6 +85,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Gets data from disk and init
+     */
     fun loadData() = viewModelScope.launch {
         try {
             repository.loadData()

@@ -37,7 +37,8 @@ class DataRepository @Inject constructor(
     }
 
     private var events: Array<GameEvent> = emptyArray()
-    private var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
+    var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
+        private set
     private var ocrThreshold: Float = context.resources.readFloat(R.dimen.ocr_title_threshold)
     private val _currentEvent = MutableLiveData<GameEvent?>(null)
     private val _initialized = MutableLiveData(false)
@@ -54,8 +55,15 @@ class DataRepository @Inject constructor(
             }
         }
 
+    suspend fun clearData() = withContext(Dispatchers.IO) {
+        context.filesDir.listFiles()?.forEach { it.deleteRecursively() }
+        dataVersion = 0L
+        Log.d("clear", "data cleared version:0")
+    }
+
     suspend fun checkUpdate(): EventDataInfo? = withContext(Dispatchers.IO) {
         val info = network.getDataInfo()
+        Log.d("checkUpdate", "current:$dataVersion, found:${info.version}")
         if (info.version > dataVersion) {
             info
         } else null
@@ -86,7 +94,7 @@ class DataRepository @Inject constructor(
 
     suspend fun loadData() = withContext(Dispatchers.IO) {
         val file = File(context.filesDir, DATA_FILE)
-        if (!file.exists() || !file.isFile) throw IllegalStateException("event data not initialized yet")
+        if (!file.exists() || !file.isFile) throw IllegalStateException(context.getString(R.string.error_data_not_found))
         val str = file.readText(Charsets.UTF_8)
         val data = Json { ignoreUnknownKeys = true }.decodeFromString<GameEventData>(str)
         events = data.events

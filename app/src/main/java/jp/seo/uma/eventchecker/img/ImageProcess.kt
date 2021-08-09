@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import dagger.hilt.android.qualifiers.ApplicationContext
+import jp.seo.uma.eventchecker.core.DataRepository
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ import javax.inject.Singleton
 @Singleton
 class ImageProcess @Inject constructor(
     private val repository: SettingRepository,
+    private val data: DataRepository,
     @ApplicationContext private val context: Context
 ) {
 
@@ -56,7 +58,7 @@ class ImageProcess @Inject constructor(
         headerDetector = GameHeaderDetector(context)
         eventTypeDetector = EventTypeDetector(context)
         eventTitleCropper = EventTitleProcess(context)
-        val iconData = loadEventOwners(context)
+        val iconData = data.eventOwners
         charaEventOwnerDetector = getCharaEventOwnerDetector(context, iconData)
         supportEventOwnerDetector = getSupportEventOwnerDetector(context, iconData)
         initialized.value = true

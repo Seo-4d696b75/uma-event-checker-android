@@ -12,8 +12,6 @@ import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
@@ -125,11 +123,4 @@ fun getSupportEventOwnerDetector(context: Context, data: EventOwners): Templates
     )
 }
 
-fun loadEventOwners(context: Context): EventOwners {
-    val manager = context.resources.assets
-    return manager.open("icon.json").use { reader ->
-        val str = reader.readBytes().toString(Charsets.UTF_8)
-        Json { ignoreUnknownKeys = true }.decodeFromString(str)
-    }
-}
 
