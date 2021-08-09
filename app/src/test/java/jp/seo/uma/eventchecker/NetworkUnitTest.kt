@@ -1,8 +1,5 @@
 package jp.seo.uma.eventchecker
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.seo.uma.eventchecker.core.DataNetwork
 import jp.seo.uma.eventchecker.core.getDataNetwork
 import kotlinx.coroutines.Dispatchers
@@ -11,22 +8,22 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.util.*
 
 /**
+ * Retrofitのテスト
  * @author Seo-4d696b75
  * @version 2021/08/08.
  */
-@RunWith(AndroidJUnit4::class)
-class NetworkTest {
+class NetworkUnitTest {
+
+    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/main/"
 
     lateinit var client: DataNetwork
 
     @Before
     fun setup() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        client = getDataNetwork(context.getString(R.string.data_repository_base_url))
+        client = getDataNetwork(baseURL)
     }
 
     @Test
