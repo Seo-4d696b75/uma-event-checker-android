@@ -6,7 +6,7 @@ import android.os.SystemClock
 import android.util.Log
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.core.EventOwners
-import jp.seo.uma.eventchecker.core.getBitmap
+import jp.seo.uma.eventchecker.core.readBitmap
 import jp.seo.uma.eventchecker.core.readFloat
 import jp.seo.uma.eventchecker.core.toMat
 import kotlinx.coroutines.Dispatchers
@@ -85,12 +85,11 @@ class TemplateHolder(
 }
 
 fun getCharaEventOwnerDetector(context: Context, data: EventOwners): TemplatesMatcher {
-    val manager = context.resources.assets
     val resizedWidth =
         context.resources.getInteger(R.integer.template_event_owner_chara_resized_width)
     val templates = data.charaEventOwners.map { owner ->
         val icons = owner.icon.map {
-            manager.getBitmap("icon/${it}")
+            readBitmap(context.filesDir, "icon/${it}")
         }.toList()
         TemplateHolder(owner.name, icons, resizedWidth)
     }
@@ -105,12 +104,11 @@ fun getCharaEventOwnerDetector(context: Context, data: EventOwners): TemplatesMa
 }
 
 fun getSupportEventOwnerDetector(context: Context, data: EventOwners): TemplatesMatcher {
-    val manager = context.resources.assets
     val resizedWidth =
         context.resources.getInteger(R.integer.template_event_owner_support_resized_width)
     val templates = data.supportEventOwners.map { owner ->
         val file = "icon/${owner.icon}"
-        val icon = manager.getBitmap(file)
+        val icon = readBitmap(context.filesDir, file)
         TemplateHolder(owner.name, listOf(icon), resizedWidth)
     }
     return TemplatesMatcher(

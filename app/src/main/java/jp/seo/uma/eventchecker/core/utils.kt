@@ -52,6 +52,11 @@ fun AssetManager.getBitmap(path: String): Bitmap {
     return BitmapFactory.decodeStream(open(path))
 }
 
+fun readBitmap(dir: File, path: String): Bitmap {
+    val stream = File(dir, path).inputStream()
+    return BitmapFactory.decodeStream(stream)
+}
+
 fun Bitmap.toMat(): Mat {
     val mat = Mat()
     Utils.bitmapToMat(this, mat)
