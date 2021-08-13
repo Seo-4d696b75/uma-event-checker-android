@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -164,8 +163,12 @@ class DataRepository @Inject constructor(
 
     private suspend fun searchEventTitle(title: String): List<GameEvent> {
         Log.d("EventData", "normalized query '$title'")
-        val score = Array<Float>(events.size) { 0f }
-        calcTitleDistance(0, events.size, title, score)
+        val algo = LevensteinDistance()
+        val score = events.mapParallel(
+            process = { event -> algo.getDistance(event.normalizedTitle, title) },
+            coroutineCount = 8,
+            context = Dispatchers.Default
+        )
         return score.maxOrNull()?.let { maxScore ->
             if (maxScore > ocrThreshold) {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
@@ -182,31 +185,6 @@ class DataRepository @Inject constructor(
                 null
             }
         } ?: emptyList()
-    }
-
-    private suspend fun calcTitleDistance(
-        start: Int,
-        end: Int,
-        query: String,
-        dst: Array<Float>
-    ): Unit = withContext(Dispatchers.Default) {
-        if (start + 64 < end) {
-            val mid = start + (end - start) / 2
-            val left = async {
-                calcTitleDistance(start, mid, query, dst)
-            }
-            val right = async {
-                calcTitleDistance(mid, end, query, dst)
-            }
-            left.await()
-            right.await()
-        } else {
-            val algo = LevensteinDistance()
-            (start until end).forEach { idx ->
-                val event = events[idx]
-                dst[idx] = algo.getDistance(event.normalizedTitle, query)
-            }
-        }
     }
 
 }

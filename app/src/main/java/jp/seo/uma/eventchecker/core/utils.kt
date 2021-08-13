@@ -28,7 +28,6 @@ import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
 import kotlin.coroutines.CoroutineContext
 
@@ -224,23 +223,6 @@ fun OkHttpClient.Builder.addProgressCallback(listener: ((bytes: Long) -> Unit)):
     return this
 }
 
-fun ResponseBody.decodeToString(progress: ((Int) -> Unit)): String {
-    val total = this.contentLength().toInt()
-    if (total <= 0) throw IOException("content-length must be > 0")
-    val buf = ByteArray(total)
-    var offset = 0
-    this.byteStream().use { input ->
-        while (true) {
-            val c = input.read(buf, offset, 4096)
-            if (c < 0) break
-            offset += c
-            val percent = (offset * 100f / total).toInt()
-            progress.invoke(percent)
-        }
-    }
-    return buf.decodeToString()
-}
-
 /**
  * Performs the given [process] on each element in parallel.
  *
@@ -255,7 +237,7 @@ fun ResponseBody.decodeToString(progress: ((Int) -> Unit)): String {
  */
 suspend fun <E> Iterable<E>.forEachParallel(
     process: suspend ((element: E) -> Unit),
-    onProcessed: ((element: E, index: Int) -> Unit)? = null,
+    onProcessed: ((element: E, cnt: Int) -> Unit)? = null,
     coroutineCount: Int = 4,
     context: CoroutineContext = Dispatchers.Default
 ) = withContext(context) {
@@ -271,11 +253,32 @@ suspend fun <E> Iterable<E>.forEachParallel(
                 process.invoke(next)
                 onProcessed?.let { callback ->
                     mutex.withLock {
-                        callback.invoke(next, cnt++)
+                        callback.invoke(next, ++cnt)
                     }
                 }
             }
         }
     }
     coroutines.forEach { it.await() }
+}
+
+suspend fun <E, R> Array<E>.mapParallel(
+    process: suspend ((element: E) -> R),
+    onProcessed: ((result: R, cnt: Int) -> Unit)? = null,
+    coroutineCount: Int = 4,
+    context: CoroutineContext = Dispatchers.Default
+): List<R> {
+    val result = ArrayList<R>(this.size)
+    this.indices.forEachParallel(
+        process = { idx ->
+            val e = this[idx]
+            val r = process.invoke(e)
+            result[idx] = r
+        },
+        onProcessed = { idx, cnt ->
+            onProcessed?.invoke(result[idx], cnt)
+        },
+        coroutineCount, context
+    )
+    return result
 }
