@@ -65,8 +65,19 @@ class MainActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         viewModel.update.observe(this, "main-activity") {
-            val dialog = DataUpdateDialog.getInstance(it)
-            dialog.show(supportFragmentManager, "data-update")
+            when (it) {
+                is MainViewModel.DataUpdateEvent.Request -> {
+                    val dialog = DataUpdateDialog.getRequestDialog(it.info)
+                    dialog.show(supportFragmentManager, "data-update-request")
+                }
+                is MainViewModel.DataUpdateEvent.Start -> {
+                    val dialog = DataUpdateDialog.getProgressDialog()
+                    dialog.show(supportFragmentManager, "data-update-progress")
+                }
+                else -> {
+                }
+            }
+
         }
 
         viewModel.error.observe(this, "main-activity") {

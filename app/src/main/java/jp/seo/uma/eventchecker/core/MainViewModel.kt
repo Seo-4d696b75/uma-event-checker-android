@@ -47,7 +47,13 @@ class MainViewModel @Inject constructor(
 
     val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
 
-    val update = LiveEvent<EventDataInfo>()
+    sealed class DataUpdateEvent {
+        class Request(val info: EventDataInfo) : DataUpdateEvent()
+        object Start : DataUpdateEvent()
+        object Complete : DataUpdateEvent()
+    }
+
+    val update = LiveEvent<DataUpdateEvent>()
     val error = LiveEvent<Exception>()
 
     val ocrText = imgProcess.title
@@ -66,17 +72,24 @@ class MainViewModel @Inject constructor(
             if (info == null) {
                 loadData()
             } else {
-                update.call(info)
+                update.call(DataUpdateEvent.Request(info))
             }
         } catch (e: Exception) {
             error.call(e)
         }
     }
 
+    private val _dataUpdateProgress = MutableLiveData(0)
+    private val _dataUpdateStatus = MutableLiveData("")
+
+    val dataUpdateProgress: LiveData<Int> = _dataUpdateProgress
+    val dataUpdateStatus: LiveData<String> = _dataUpdateStatus
+
     /**
      * Gets new data from network and init data
      */
     fun updateData(info: EventDataInfo) = viewModelScope.launch {
+        update.call(DataUpdateEvent.Start)
         try {
             repository.updateData(
                 info,
@@ -86,6 +99,8 @@ class MainViewModel @Inject constructor(
             imgProcess.init()
         } catch (e: Exception) {
             error.call(e)
+        } finally {
+            update.call(DataUpdateEvent.Complete)
         }
     }
 

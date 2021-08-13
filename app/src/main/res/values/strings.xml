@@ -12,4 +12,7 @@
     <string name="data_update_dialog_button_positive">ダウンロード</string>
     <string name="data_update_dialog_button_negative">キャンセル</string>
     <string name="error_data_not_found">データがありません</string>
+    <string name="update_status_data">ダウンロード中…</string>
+    <string name="update_status_icons">画像をダウンロード中…%d/%d</string>
+    <string name="update_progress">%d %%</string>
 </resources>
