@@ -1,6 +1,9 @@
 package jp.seo.uma.eventchecker.core
 
+import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jp.seo.uma.eventchecker.R
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -12,6 +15,7 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
 import java.text.StringCharacterIterator
+import javax.inject.Inject
 
 /**
  * @author Seo-4d696b75
@@ -28,9 +32,32 @@ interface DataNetwork {
     suspend fun getIconImage(@Path("file_name") name: String): ResponseBody
 }
 
+class NetworkClient @Inject constructor(
+    @ApplicationContext context: Context
+) {
+    private val client = getDataNetwork(context.getString(R.string.data_repository_base_url)) {
+        callback?.invoke(it)
+    }
+
+    private var callback: ((Long) -> Unit)? = null
+
+    suspend fun getDataInfo() = client.getDataInfo()
+    suspend fun getData() = client.getData()
+    suspend fun getIconImage(name: String) = client.getIconImage(name)
+
+    suspend fun getData(progress: ((Long) -> Unit)): GameEventData {
+        callback = progress
+        val result = kotlin.runCatching { client.getData() }
+        callback = null
+        return result.getOrThrow()
+    }
+}
+
 @ExperimentalSerializationApi
-fun getDataNetwork(baseURL: String): DataNetwork {
-    val client = OkHttpClient.Builder().build()
+fun getDataNetwork(baseURL: String, progress: ((Long) -> Unit)): DataNetwork {
+    val client = OkHttpClient.Builder()
+        .addProgressCallback(progress)
+        .build()
     val factory = Json { ignoreUnknownKeys = true }
         .asConverterFactory(MediaType.get("application/json"))
     return Retrofit.Builder()

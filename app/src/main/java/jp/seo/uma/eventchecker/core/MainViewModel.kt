@@ -78,7 +78,11 @@ class MainViewModel @Inject constructor(
      */
     fun updateData(info: EventDataInfo) = viewModelScope.launch {
         try {
-            repository.updateData(info)
+            repository.updateData(
+                info,
+                statusCallback = { _dataUpdateStatus.postValue(it) },
+                progressCallback = { _dataUpdateProgress.postValue(it) }
+            )
             imgProcess.init()
         } catch (e: Exception) {
             error.call(e)

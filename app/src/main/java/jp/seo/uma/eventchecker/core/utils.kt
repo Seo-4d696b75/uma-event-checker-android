@@ -11,13 +11,27 @@ import androidx.annotation.DimenRes
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
+import okio.Buffer
+import okio.BufferedSource
+import okio.ForwardingSource
+import okio.Okio
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import kotlin.coroutines.CoroutineContext
+
 
 /**
  * @author Seo-4d696b75
@@ -159,4 +173,109 @@ class LiveEvent<T> : LiveData<T>() {
         dispatched.clear()
         super.setValue(value)
     }
+}
+
+// https://stackoverflow.com/questions/42118924/android-retrofit-download-progress
+class ProgressResponseBody(
+    private val adapt: ResponseBody,
+    private val listener: (Long) -> Unit,
+) : ResponseBody() {
+
+    private var buf: BufferedSource? = null
+
+    override fun contentType(): MediaType? = adapt.contentType()
+
+    override fun contentLength(): Long = adapt.contentLength()
+
+    override fun source(): BufferedSource {
+        return buf ?: kotlin.run {
+            val s = object : ForwardingSource(adapt.source()) {
+                private var totalBytes: Long = 0L
+                override fun read(sink: Buffer, byteCount: Long): Long {
+                    val readBytes = super.read(sink, byteCount)
+                    if (readBytes > 0L) totalBytes += readBytes
+                    listener(totalBytes)
+                    return readBytes
+                }
+            }
+            val b = Okio.buffer(s)
+            buf = b
+            b
+        }
+    }
+
+}
+
+/**
+ * ダウンロード中の進捗状況を確認するコールバックを登録する.
+ *
+ * @param listener
+ */
+fun OkHttpClient.Builder.addProgressCallback(listener: ((bytes: Long) -> Unit)): OkHttpClient.Builder {
+    this.addInterceptor { chain ->
+        val res = chain.proceed(chain.request())
+        val body = res.body()
+        body?.let {
+            res.newBuilder()
+                .body(ProgressResponseBody(it, listener))
+                .build()
+        } ?: res
+    }
+    return this
+}
+
+fun ResponseBody.decodeToString(progress: ((Int) -> Unit)): String {
+    val total = this.contentLength().toInt()
+    if (total <= 0) throw IOException("content-length must be > 0")
+    val buf = ByteArray(total)
+    var offset = 0
+    this.byteStream().use { input ->
+        while (true) {
+            val c = input.read(buf, offset, 4096)
+            if (c < 0) break
+            offset += c
+            val percent = (offset * 100f / total).toInt()
+            progress.invoke(percent)
+        }
+    }
+    return buf.decodeToString()
+}
+
+/**
+ * Performs the given [process] on each element in parallel.
+ *
+ * The given numbers [coroutineCount] of coroutines will process each element
+ * in order of [iterator].
+ *
+ * @param process any action to be done on each element
+ * @param onProcessed callback invoked every time each action has been completed,
+ *  this call is synchronized.
+ * @param coroutineCount number of coroutines which will perform actions
+ * @param context in which context the coroutines will run
+ */
+suspend fun <E> Iterable<E>.forEachParallel(
+    process: suspend ((element: E) -> Unit),
+    onProcessed: ((element: E, index: Int) -> Unit)? = null,
+    coroutineCount: Int = 4,
+    context: CoroutineContext = Dispatchers.Default
+) = withContext(context) {
+    val mutex = Mutex()
+    val itr = iterator()
+    var cnt = 0
+    val coroutines = Array(coroutineCount) {
+        async {
+            while (true) {
+                val next = mutex.withLock {
+                    if (itr.hasNext()) itr.next() else null
+                } ?: break
+                process.invoke(next)
+                onProcessed?.let { callback ->
+                    mutex.withLock {
+                        callback.invoke(next, cnt++)
+                    }
+                }
+            }
+        }
+    }
+    coroutines.forEach { it.await() }
 }

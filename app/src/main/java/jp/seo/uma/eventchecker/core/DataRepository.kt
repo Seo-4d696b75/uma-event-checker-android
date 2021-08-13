@@ -17,6 +17,7 @@ import org.apache.lucene.search.spell.LevensteinDistance
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.min
 
 /**
  * ゲーム中のイベント情報を管理・検索
@@ -28,7 +29,7 @@ import javax.inject.Singleton
 class DataRepository @Inject constructor(
     @ApplicationContext
     private val context: Context,
-    private val network: DataNetwork
+    private val network: NetworkClient
 ) {
 
     companion object {
@@ -69,8 +70,18 @@ class DataRepository @Inject constructor(
         } else null
     }
 
-    suspend fun updateData(info: EventDataInfo) = withContext(Dispatchers.IO) {
-        val data = network.getData()
+    suspend fun updateData(
+        info: EventDataInfo,
+        statusCallback: ((message: String) -> Unit)? = null,
+        progressCallback: ((percent: Int) -> Unit)? = null
+    ) = withContext(Dispatchers.IO) {
+        statusCallback?.invoke(context.getString(R.string.update_status_data))
+        progressCallback?.invoke(0)
+        val data = network.getData {
+            val percent = (it * 100f / info.size).toInt()
+            progressCallback?.invoke(min(100, percent))
+        }
+        progressCallback?.invoke(100)
         events = data.events
         eventOwners = data.owners
         val dir = context.filesDir
@@ -84,10 +95,24 @@ class DataRepository @Inject constructor(
         val icons = mutableListOf<String>()
         data.owners.supportEventOwners.forEach { icons.add(it.icon) }
         data.owners.charaEventOwners.forEach { icons.addAll(it.icon) }
-        icons.filter { !File(iconDir, it).exists() }.forEach {
-            val res = network.getIconImage(it)
-            res.saveFile(File(iconDir, it))
-        }
+        val targets = icons.filter { !File(iconDir, it).exists() }
+        targets.forEachParallel(
+            process = { s ->
+                val res = network.getIconImage(s)
+                res.saveFile(File(iconDir, s))
+            },
+            onProcessed = { _, index ->
+                statusCallback?.invoke(
+                    context.getString(
+                        R.string.update_status_icons,
+                        index + 1,
+                        targets.size
+                    )
+                )
+                progressCallback?.invoke((index * 100f / targets.size).toInt())
+            },
+            context = Dispatchers.IO
+        )
         dataVersion = info.version
         _initialized.postValue(true)
     }
