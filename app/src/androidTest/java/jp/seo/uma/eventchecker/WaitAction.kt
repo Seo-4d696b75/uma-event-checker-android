@@ -68,7 +68,7 @@ fun waitUntilDisplayed(timeout: Long = 5000L) = WaitAction(
     timeout
 )
 
-fun waitDialogWithView(viewMatcher: Matcher<View>, timeout: Long = 5000L) = runBlocking {
+fun waitForDialogWithView(viewMatcher: Matcher<View>, timeout: Long = 5000L) = runBlocking {
     val limit = System.currentTimeMillis() + timeout
     while (System.currentTimeMillis() < limit) {
         delay(100L)
@@ -82,4 +82,19 @@ fun waitDialogWithView(viewMatcher: Matcher<View>, timeout: Long = 5000L) = runB
         }
     }
     throw RuntimeException("dialog not found")
+}
+
+fun waitWhileDialogWithView(viewMatcher: Matcher<View>, timeout: Long = 5000L) = runBlocking {
+    val limit = System.currentTimeMillis() + timeout
+    while (System.currentTimeMillis() < limit) {
+        delay(100L)
+        try {
+            onView(viewMatcher)
+                .inRoot(isDialog())
+                .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        } catch (e: RuntimeException) {
+            return@runBlocking
+        }
+    }
+    throw RuntimeException("dialog still displayed")
 }

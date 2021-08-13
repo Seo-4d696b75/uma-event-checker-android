@@ -23,7 +23,7 @@ class NetworkUnitTest {
 
     @Before
     fun setup() {
-        client = getDataNetwork(baseURL)
+        client = getDataNetwork(baseURL) {}
     }
 
     @Test

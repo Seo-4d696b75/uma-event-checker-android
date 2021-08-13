@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import io.mockk.every
 import io.mockk.spyk
 import jp.seo.uma.eventchecker.core.DataRepository
-import jp.seo.uma.eventchecker.core.getDataNetwork
+import jp.seo.uma.eventchecker.core.NetworkClient
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
@@ -21,7 +21,7 @@ class DataRepositoryTest {
 
     init {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val network = getDataNetwork(context.getString(R.string.data_repository_base_url))
+        val network = NetworkClient(context)
         repository = DataRepository(context, network)
     }
 
@@ -33,7 +33,7 @@ class DataRepositoryTest {
             mock.checkUpdate()
         }
         assertThat(info, Matchers.notNullValue())
-        every { mock getProperty "dataVersion" } returns info!!.version
+        every { mock.dataVersion } returns info!!.version
         val info2 = runBlocking {
             mock.checkUpdate()
         }
@@ -42,7 +42,11 @@ class DataRepositoryTest {
 
     @Test
     fun test_update() {
-        val info = runBlocking { repository.checkUpdate() }
+        val info = runBlocking {
+            // ensure no data stored
+            repository.clearData()
+            repository.checkUpdate()
+        }
         assertThat(info, Matchers.notNullValue())
         runBlocking { repository.updateData(info!!) }
         val info2 = runBlocking { repository.checkUpdate() }

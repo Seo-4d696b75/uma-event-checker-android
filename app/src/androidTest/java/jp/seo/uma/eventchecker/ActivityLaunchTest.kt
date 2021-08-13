@@ -11,9 +11,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.UninstallModules
 import io.mockk.*
-import jp.seo.uma.eventchecker.core.*
+import jp.seo.uma.eventchecker.core.DataRepository
+import jp.seo.uma.eventchecker.core.EventDataInfo
+import jp.seo.uma.eventchecker.core.NetworkClient
 import jp.seo.uma.eventchecker.ui.MainActivity
 import kotlinx.coroutines.delay
 import org.hamcrest.MatcherAssert.assertThat
@@ -29,7 +30,6 @@ import java.io.IOException
  * @version 2021/08/09.
  */
 @HiltAndroidTest
-@UninstallModules(DaggerModule::class)
 class ActivityLaunchTest {
 
     private val activityRule = ActivityScenarioRule(MainActivity::class.java)
@@ -39,7 +39,7 @@ class ActivityLaunchTest {
         .around(activityRule)
 
     @BindValue
-    val network: DataNetwork = mockk()
+    val network: NetworkClient = mockk()
 
     private val _repository: DataRepository
 
@@ -55,13 +55,6 @@ class ActivityLaunchTest {
         coEvery { network.getDataInfo() } coAnswers {
             delay(1000L)
             EventDataInfo(20990101L, 1024L)
-        }
-        coEvery { network.getData() } coAnswers {
-            delay(2000L)
-            GameEventData(
-                emptyArray(),
-                EventOwners(emptyArray(), emptyArray())
-            )
         }
         coEvery { repository.checkUpdate() } coAnswers {
             _repository.clearData()
@@ -79,7 +72,7 @@ class ActivityLaunchTest {
     @Test
     fun testLaunch_cancelUpdate() {
         // wait for dialog show
-        waitDialogWithView(withText(R.string.data_update_title))
+        waitForDialogWithView(withText(R.string.data_update_title))
         // click dialog 'negative' button
         onView(withText(R.string.data_update_dialog_button_negative)).perform(click())
         // check app fin
@@ -94,12 +87,12 @@ class ActivityLaunchTest {
 
     @Test
     fun testLaunch_updateFailure() {
-        coEvery { network.getData() } coAnswers {
+        coEvery { network.getData(any()) } coAnswers {
             delay(100L)
             throw IOException("test")
         }
         // wait for dialog show
-        waitDialogWithView(withText(R.string.data_update_title))
+        waitForDialogWithView(withText(R.string.data_update_title))
         // click dialog 'negative' button
         onView(withText(R.string.data_update_dialog_button_positive)).perform(click())
         // check app fin
@@ -108,20 +101,41 @@ class ActivityLaunchTest {
         // verify
         coVerify(exactly = 1) {
             network.getDataInfo()
-            network.getData()
+            network.getData(any())
         }
         confirmVerified(network)
     }
 
     @Test
     fun testLaunch_updateSuccess() {
+        val statusCallbackSlot = slot<(String) -> Unit>()
+        val progressCallbackSlot = slot<(Int) -> Unit>()
+        coEvery {
+            repository.updateData(
+                any(),
+                statusCallback = capture(statusCallbackSlot),
+                progressCallback = capture(progressCallbackSlot)
+            )
+        } coAnswers {
+            statusCallbackSlot.captured.invoke("test-message")
+            progressCallbackSlot.captured.invoke(50)
+            delay(1000L)
+        }
         // wait for dialog show
-        waitDialogWithView(withText(R.string.data_update_title))
-        // click dialog 'negative' button
+        waitForDialogWithView(withText(R.string.data_update_title))
+        // click dialog 'positive' button
         onView(withText(R.string.data_update_dialog_button_positive)).perform(click())
+        // wait for progress dialog show
+        waitForDialogWithView(withId(R.id.text_data_update_status))
+        // check progress UI on dialog
+        onView(withId(R.id.text_data_update_status))
+            .check(ViewAssertions.matches(withText("test-message")))
+        onView(withId(R.id.text_data_update_progress))
+            .check(ViewAssertions.matches(withText(Matchers.containsString("50"))))
         // wait
-        onView(withId(R.id.progress_main)).perform(waitWhileDisplayed(6000L))
-        // check UI
+        waitWhileDialogWithView(withId(R.id.text_data_update_status), 4000L)
+        onView(withId(R.id.progress_main)).perform(waitWhileDisplayed(100L))
+        // check UI on activity
         onView(withId(R.id.button_start))
             .check(ViewAssertions.matches(isEnabled()))
             .check(ViewAssertions.matches(withText(R.string.button_start)))
@@ -129,10 +143,12 @@ class ActivityLaunchTest {
             .check(ViewAssertions.matches(withText(R.string.message_main_idle)))
         // verify
         coVerify(exactly = 1) {
-            network.getDataInfo()
-            network.getData()
+            repository.checkUpdate()
+            repository.updateData(any(), any(), any())
+            repository.currentEvent
+            repository.eventOwners
         }
-        confirmVerified(network)
+        confirmVerified(repository)
     }
 
 }
