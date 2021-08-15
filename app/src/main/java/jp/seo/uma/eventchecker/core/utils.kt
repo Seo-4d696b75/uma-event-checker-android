@@ -268,7 +268,7 @@ suspend fun <E, R> Array<E>.mapParallel(
     coroutineCount: Int = 4,
     context: CoroutineContext = Dispatchers.Default
 ): List<R> {
-    val result = ArrayList<R>(this.size)
+    val result = MutableList<R?>(this.size) { null }
     this.indices.forEachParallel(
         process = { idx ->
             val e = this[idx]
@@ -276,9 +276,9 @@ suspend fun <E, R> Array<E>.mapParallel(
             result[idx] = r
         },
         onProcessed = { idx, cnt ->
-            onProcessed?.invoke(result[idx], cnt)
+            onProcessed?.invoke(result[idx]!!, cnt)
         },
         coroutineCount, context
     )
-    return result
+    return result.map { it!! }
 }
