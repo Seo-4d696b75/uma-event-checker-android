@@ -164,11 +164,7 @@ class DataRepository @Inject constructor(
     private suspend fun searchEventTitle(title: String): List<GameEvent> {
         Log.d("EventData", "normalized query '$title'")
         val algo = LevensteinDistance()
-        val score = events.mapParallel(
-            process = { event -> algo.getDistance(event.normalizedTitle, title) },
-            coroutineCount = 8,
-            context = Dispatchers.Default
-        )
+        val score = events.map { event -> algo.getDistance(event.normalizedTitle, title) }
         return score.maxOrNull()?.let { maxScore ->
             if (maxScore > ocrThreshold) {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
