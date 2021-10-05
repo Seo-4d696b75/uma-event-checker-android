@@ -9,8 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import jp.seo.uma.eventchecker.R
-
-import jp.seo.uma.eventchecker.core.EventChoice
+import jp.seo.uma.eventchecker.model.EventChoice
 
 /**
  * @author Seo-4d696b75

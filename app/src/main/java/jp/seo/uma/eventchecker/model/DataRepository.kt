@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.model
 
 import android.content.Context
 import android.util.Log

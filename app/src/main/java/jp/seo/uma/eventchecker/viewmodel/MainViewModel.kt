@@ -9,8 +9,8 @@ import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.core.DataRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
+import jp.seo.uma.eventchecker.model.DataRepository
 import jp.seo.uma.eventchecker.model.SettingRepository
 import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.delay
