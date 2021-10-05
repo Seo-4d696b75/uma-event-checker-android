@@ -10,15 +10,13 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.ListView
-import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.ui.EventChoiceAdapter
 import javax.inject.Inject
 
 /**
@@ -126,23 +124,17 @@ class CheckerService : LifecycleService() {
         )
         layoutParam.gravity = Gravity.END or Gravity.TOP
         layoutParam.screenBrightness = -1f
-        val view = inflater.inflate(R.layout.overlay_main, null, false)
-        view.visibility = View.VISIBLE
-        this.view = view
-        val textTitle = view.findViewById<TextView>(R.id.text_overlay_title)
-        val listChoice = view.findViewById<ListView>(R.id.list_overlay_choices)
-        listChoice.divider = null
-        listChoice.dividerHeight = 0
-        manager.addView(view, layoutParam)
-
-
-        viewModel.currentEvent.observe(this) { event ->
-            view.visibility = if (event == null) View.GONE else View.VISIBLE
-            textTitle.text = event?.title ?: "None"
-            listChoice.adapter = event?.let {
-                EventChoiceAdapter(applicationContext, it.choices)
-            }
+        val binding = OverlayMainBinding.inflate(inflater)
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = this
+        this.view = binding.root
+        binding.listOverlayChoices.apply {
+            divider = null
+            dividerHeight = 0
         }
+        manager.addView(binding.root, layoutParam)
+
+
     }
 
     override fun onDestroy() {
