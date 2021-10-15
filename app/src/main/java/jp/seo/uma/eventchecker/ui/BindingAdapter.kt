@@ -1,5 +1,7 @@
 package jp.seo.uma.eventchecker.ui
 
+import android.content.res.ColorStateList
+import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -20,4 +22,9 @@ fun setEventChoiceList(view: ListView, event: GameEvent?) {
     view.adapter = event?.let {
         EventChoiceAdapter(view.context, it.choices)
     }
+}
+
+@BindingAdapter("imageTintColor")
+fun setImageTintColor(view: ImageView, color: Int) {
+    view.imageTintList = ColorStateList.valueOf(color)
 }
