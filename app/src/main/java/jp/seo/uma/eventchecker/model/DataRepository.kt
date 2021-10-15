@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.readFloat
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -45,7 +44,7 @@ class DataRepository @Inject constructor() {
 
     private var eventTitle: String? = null
 
-    suspend fun setEventTitle(value: String?) {
+    fun setEventTitle(value: String?) {
         if (eventTitle != value) {
             if (value == null) {
                 _currentEvent.postValue(null)
@@ -59,9 +58,9 @@ class DataRepository @Inject constructor() {
 
     val currentEvent: LiveData<GameEvent?> = _currentEvent
 
-    private suspend fun searchEventTitle(title: String): GameEvent? {
-        val score = Array<Float>(events.size) { 0f }
-        calcTitleDistance(0, events.size, title, score)
+    private fun searchEventTitle(title: String): GameEvent? {
+        val algo = LevensteinDistance()
+        val score = events.map { event -> algo.getDistance(event.title, title) }
         return score.maxOrNull()?.let { maxScore ->
             if (maxScore > ocrThreshold) {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
@@ -79,32 +78,6 @@ class DataRepository @Inject constructor() {
             }
         }
     }
-
-    private suspend fun calcTitleDistance(
-        start: Int,
-        end: Int,
-        query: String,
-        dst: Array<Float>
-    ): Unit = withContext(Dispatchers.IO) {
-        if (start + 64 < end) {
-            val mid = start + (end - start) / 2
-            val left = async {
-                calcTitleDistance(start, mid, query, dst)
-            }
-            val right = async {
-                calcTitleDistance(mid, end, query, dst)
-            }
-            left.await()
-            right.await()
-        } else {
-            val algo = LevensteinDistance()
-            (start until end).forEach { idx ->
-                val event = events[idx]
-                dst[idx] = algo.getDistance(event.title, query)
-            }
-        }
-    }
-
 }
 
 @Serializable
