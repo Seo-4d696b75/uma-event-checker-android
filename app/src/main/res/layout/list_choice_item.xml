@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="1dp">
 
     <ImageView
@@ -19,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:lines="1"
-        android:text="event title"
+        tools:text="選択肢の名前"
         android:textSize="@dimen/text_size_overlay"
         android:textStyle="bold"
         android:textColor="@color/text_gray"
@@ -33,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@id/text_choice_name"
-        android:text="What will happen if selected"
+        tools:text="選択時の効果説明"
         android:textSize="@dimen/text_size_overlay"
         android:textStyle="normal"
         android:textColor="@color/text_gray"
