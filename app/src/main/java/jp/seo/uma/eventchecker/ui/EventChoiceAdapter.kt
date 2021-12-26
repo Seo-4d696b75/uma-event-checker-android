@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.view
+package jp.seo.uma.eventchecker.ui
 
 import android.content.Context
 import android.view.LayoutInflater
