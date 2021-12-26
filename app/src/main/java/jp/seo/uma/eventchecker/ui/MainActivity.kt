@@ -59,13 +59,11 @@ class MainActivity : AppCompatActivity() {
         val resultCode = it.resultCode
         val data = it.data
         if (resultCode == Activity.RESULT_OK && data != null) {
-            // all ready. start service
-            val intent = Intent(this, CheckerService::class.java)
-            startForegroundService(intent)
             val projection = projectionManager.getMediaProjection(resultCode, data)
             viewModel.startCapture(projection)
         } else {
             Toast.makeText(this, "fail to get capture", Toast.LENGTH_SHORT).show()
+            stopService()
             finish()
         }
     }
@@ -148,6 +146,9 @@ class MainActivity : AppCompatActivity() {
             overlayPermissionLauncher.launch(intent)
             return
         }
+
+        val intent = Intent(this, CheckerService::class.java)
+        startForegroundService(intent)
 
         // init MediaProjection API
         projectionManager =
