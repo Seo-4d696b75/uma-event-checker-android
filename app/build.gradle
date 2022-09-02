@@ -68,7 +68,7 @@ dependencies {
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
 
     // Image processing
-    implementation project(path: ':opencv-4.5.2')
+    implementation project(path: ':opencv-4.6.0')
 
     // String comparison
     implementation "org.apache.lucene:lucene-core:8.9.0"
