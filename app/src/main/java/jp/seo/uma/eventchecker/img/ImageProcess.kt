@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.core.DataRepository
+import jp.seo.uma.eventchecker.core.LiveEvent
 import jp.seo.uma.eventchecker.core.SettingRepository
 import jp.seo.uma.eventchecker.core.copyAssetsToFiles
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,15 @@ class ImageProcess @Inject constructor(
 
     private val _title = MutableLiveData<String?>(null)
     val title: LiveData<String?> = _title
+
+    private val _textImage = MutableLiveData<Bitmap?>(null)
+    val textImage: LiveData<Bitmap?> = _textImage
+
+    private val _eventType = MutableLiveData<EventType?>(null)
+    val currentEventType: LiveData<EventType?> = _eventType
+
+    private val _isGameScreen = MutableLiveData<Boolean>(false)
+    val isGameScreen: LiveData<Boolean> = _isGameScreen
 
     private val initialized = MutableLiveData(false)
     private var _initialized = false
@@ -111,6 +121,7 @@ class ImageProcess @Inject constructor(
     fun getEventTitle(img: Mat): String? {
         if (!_initialized) return null
         val isGame = headerDetector.detect(img)
+        _isGameScreen.postValue(isGame)
         Log.d("Img", "check is-target $isGame")
         if (isGame) {
             val type = eventTypeDetector.detect(img)
@@ -118,12 +129,15 @@ class ImageProcess @Inject constructor(
             if (type != null) {
                 val title = extractEventTitle(img, type)
                 _title.postValue(title)
+                _eventType.postValue(type)
                 eventType = type
                 return title
             }
         }
         eventType = null
+        _textImage.postValue(null)
         _title.postValue(null)
+        _eventType.postValue(null)
         return null
     }
 
@@ -144,6 +158,7 @@ class ImageProcess @Inject constructor(
     private fun extractEventTitle(img: Mat, type: EventType): String {
         val start = SystemClock.uptimeMillis()
         val target = eventTitleCropper.preProcess(img, type)
+        _textImage.postValue(target)
         val title = extractText(target)
         Log.d("OCR", "title: $title time: ${SystemClock.uptimeMillis() - start}ms")
         return title

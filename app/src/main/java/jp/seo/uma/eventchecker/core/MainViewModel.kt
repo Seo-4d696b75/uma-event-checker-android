@@ -57,8 +57,6 @@ class MainViewModel @Inject constructor(
     val update = LiveEvent<DataUpdateEvent>()
     val error = LiveEvent<Exception>()
 
-    val ocrText = imgProcess.title
-
     val currentEvent = repository.currentEvent
 
     /**
