@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.databinding.DataBindingUtil
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.EventChoice
+import jp.seo.uma.eventchecker.model.EventChoice
 import jp.seo.uma.eventchecker.databinding.ListChoiceItemBinding
 
 /**

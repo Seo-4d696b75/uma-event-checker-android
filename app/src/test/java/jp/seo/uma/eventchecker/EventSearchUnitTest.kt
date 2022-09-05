@@ -1,6 +1,6 @@
 package jp.seo.uma.eventchecker
 
-import jp.seo.uma.eventchecker.core.GameEvent
+import jp.seo.uma.eventchecker.model.GameEvent
 import jp.seo.uma.eventchecker.core.getDataNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

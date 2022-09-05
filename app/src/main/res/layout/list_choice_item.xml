@@ -7,7 +7,7 @@
 
         <variable
             name="choice"
-            type="jp.seo.uma.eventchecker.core.EventChoice" />
+            type="jp.seo.uma.eventchecker.model.EventChoice" />
 
         <variable
             name="symbolColor"

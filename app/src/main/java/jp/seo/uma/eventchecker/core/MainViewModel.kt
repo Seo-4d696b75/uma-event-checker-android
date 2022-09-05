@@ -36,7 +36,7 @@ class MainViewModel @Inject constructor(
         ): MainViewModel {
             val factory = object : ViewModelProvider.Factory {
                 @SuppressWarnings("unchecked_cast")
-                override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     val obj = MainViewModel(repository, process, setting, capture)
                     return obj as T
                 }

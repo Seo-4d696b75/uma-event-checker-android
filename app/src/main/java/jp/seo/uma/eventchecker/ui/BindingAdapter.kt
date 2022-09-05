@@ -5,7 +5,7 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
-import jp.seo.uma.eventchecker.core.GameEvent
+import jp.seo.uma.eventchecker.model.GameEvent
 
 /**
  * @author Seo-4d696b75
