@@ -13,7 +13,7 @@ class ShakeDetector : SensorEventListener {
     private var lastDetectTime: Long? = null
     private var shakeCnt = 0
 
-    private val shakeEvent = LiveEvent<Unit>()
+    val shakeEvent = LiveEvent<Unit>()
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
