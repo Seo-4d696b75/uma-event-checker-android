@@ -80,5 +80,39 @@
             app:layout_constraintTop_toTopOf="@id/text_detected_string_title"
             tools:text="detected string" />
 
+        <TextView
+            android:id="@+id/text_detected_event_owner_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="event owner:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_detected_string_title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.currentEvent == null ? null : viewModel.currentEvent.ownerName}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_event_owner_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_event_owner_title"
+            tools:text="detected event owner" />
+
+        <TextView
+            android:id="@+id/text_detected_event_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="event title:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_detected_event_owner_title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:gameEventTitle="@{viewModel.currentEvent}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_event_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_event_title"
+            tools:text="detected event title" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
