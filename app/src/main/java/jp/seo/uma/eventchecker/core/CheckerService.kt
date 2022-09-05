@@ -6,6 +6,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -50,12 +52,16 @@ class CheckerService : LifecycleService() {
     @Inject
     lateinit var setting: SettingRepository
 
-    private lateinit var manager: WindowManager
+    private lateinit var windowManager: WindowManager
+    private lateinit var sensorManager: SensorManager
+
     private var view: View? = null
 
     private val viewModel: MainViewModel by lazy {
         MainViewModel.getInstance(ViewModelStore(), repository, imageProcess, setting, capture)
     }
+
+    private val shakeDetector = ShakeDetector()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -86,8 +92,12 @@ class CheckerService : LifecycleService() {
 
         val exit = Intent(applicationContext, CheckerService::class.java)
             .putExtra(KEY_REQUEST, REQUEST_EXIT_SERVICE)
-        val pending =
-            PendingIntent.getService(applicationContext, 1, exit, PendingIntent.FLAG_ONE_SHOT)
+        val pending = PendingIntent.getService(
+            applicationContext,
+            1,
+            exit,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE,
+        )
         val notification =
             NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_custom_foreground)
@@ -105,7 +115,7 @@ class CheckerService : LifecycleService() {
             viewModel.updateScreen(it)
         }
 
-        manager = getSystemService(WINDOW_SERVICE) as WindowManager
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
 
         // init overlay view
@@ -132,16 +142,24 @@ class CheckerService : LifecycleService() {
             divider = null
             dividerHeight = 0
         }
-        manager.addView(binding.root, layoutParam)
+        windowManager.addView(binding.root, layoutParam)
 
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorManager.registerListener(
+            shakeDetector,
+            sensor,
+            SensorManager.SENSOR_DELAY_GAME,
+        )
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
         viewModel.stopCapture()
+        sensorManager.unregisterListener(shakeDetector)
         view?.let {
-            manager.removeView(it)
+            windowManager.removeView(it)
             view = null
         }
     }
