@@ -17,4 +17,6 @@
     <string name="update_status_data">ダウンロード中…</string>
     <string name="update_status_icons">画像をダウンロード中…%d/%d</string>
     <string name="update_progress">%d %%</string>
+    <string name="debug_dialog_title">デバッグメニュー</string>
+    <string name="debug_dialog_close">閉じる</string>
 </resources>
