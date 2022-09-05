@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="jp.seo.uma.eventchecker.ui.DebugDialogViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/text_is_game_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="isGameScreen:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_is_game"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.isGameScreen ? `true` : `false`}"
+            app:layout_constraintStart_toEndOf="@id/text_is_game_title"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="false" />
+
+        <TextView
+            android:id="@+id/text_event_type_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EventType:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_is_game_title" />
+
+        <TextView
+            eventType="@{viewModel.eventType}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:layout_constraintStart_toEndOf="@id/text_event_type_title"
+            app:layout_constraintTop_toTopOf="@id/text_event_type_title"
+            tools:text="none" />
+
+        <ImageView
+            android:id="@+id/image_text_gray"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_event_type_title"
+            app:srcBitmap="@{viewModel.textImg}"
+            tools:src="@drawable/ic_image_not_supported" />
+
+        <TextView
+            android:id="@+id/text_detected_string_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="detected:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_text_gray" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.ocrText}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_string_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_string_title"
+            tools:text="detected string" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
