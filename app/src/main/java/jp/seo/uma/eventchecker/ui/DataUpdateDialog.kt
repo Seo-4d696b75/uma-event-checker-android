@@ -8,7 +8,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.EventDataInfo
+import jp.seo.uma.eventchecker.api.EventDataInfo
 import jp.seo.uma.eventchecker.core.MainViewModel
 import jp.seo.uma.eventchecker.databinding.DialogUpdateProgressBinding
 import jp.seo.uma.eventchecker.databinding.DialogUpdateRequestBinding

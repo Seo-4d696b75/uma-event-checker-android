@@ -6,7 +6,7 @@
 
         <variable
             name="info"
-            type="jp.seo.uma.eventchecker.core.EventDataInfo" />
+            type="jp.seo.uma.eventchecker.api.EventDataInfo" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -7,6 +7,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.api.EventDataInfo
+import jp.seo.uma.eventchecker.api.NetworkClient
 import jp.seo.uma.eventchecker.model.EventOwners
 import jp.seo.uma.eventchecker.model.GameEvent
 import jp.seo.uma.eventchecker.model.GameEventData

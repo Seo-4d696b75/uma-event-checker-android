@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.seo.uma.eventchecker.api.EventDataInfo
 import jp.seo.uma.eventchecker.img.ImageProcess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

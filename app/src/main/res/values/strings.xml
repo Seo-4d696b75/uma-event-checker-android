@@ -9,7 +9,7 @@
     <string name="data_repository_base_url">https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/main/</string>
     <string name="data_update_title">データ更新</string>
     <string name="data_update_message">新しいデータがあります. ダウンロードしますか？</string>
-    <string name="data_update_version">バージョン：%d</string>
+    <string name="data_update_version">バージョン：%ld</string>
     <string name="data_update_size">サイズ：　%s</string>
     <string name="data_update_dialog_button_positive">ダウンロード</string>
     <string name="data_update_dialog_button_negative">キャンセル</string>
