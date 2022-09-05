@@ -18,7 +18,9 @@
             android:name=".core.CheckerService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
-        <activity android:name=".ui.MainActivity">
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
