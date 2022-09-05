@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         if (OpenCVLoader.initDebug()) {
             openCvCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
         } else {
-            OpenCVLoader.initAsync("4.5.2", applicationContext, openCvCallback)
+            OpenCVLoader.initAsync("4.6.0", applicationContext, openCvCallback)
         }
 
     }
