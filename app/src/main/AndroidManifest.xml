@@ -27,6 +27,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.DebugDialogLaunchActivity"
+            android:exported="false"
+            android:theme="@style/Theme.DialogLauncherActivity"
+            android:launchMode="singleInstance"/>
     </application>
 
 </manifest>

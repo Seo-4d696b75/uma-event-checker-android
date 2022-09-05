@@ -18,6 +18,8 @@ class SettingRepository @Inject constructor(
     @ApplicationContext context: Context
 ) {
 
+    var isDebugDialogShown = false
+
     var screenWidth: Int = 0
     var screenHeight: Int = 0
     var statusBarHeight: Int = 0

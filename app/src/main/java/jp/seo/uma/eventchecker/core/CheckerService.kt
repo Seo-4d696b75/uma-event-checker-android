@@ -19,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
 import jp.seo.uma.eventchecker.img.ImageProcess
+import jp.seo.uma.eventchecker.ui.DebugDialogLaunchActivity
 import javax.inject.Inject
 
 /**
@@ -151,6 +152,15 @@ class CheckerService : LifecycleService() {
             sensor,
             SensorManager.SENSOR_DELAY_GAME,
         )
+
+        shakeDetector.shakeEvent.observe(this, "checker-service") {
+            if (setting.isDebugDialogShown) return@observe
+            setting.isDebugDialogShown = true
+            val intent = Intent(applicationContext, DebugDialogLaunchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(intent)
+        }
 
     }
 
