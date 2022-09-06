@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.core.DataRepository
-import jp.seo.uma.eventchecker.core.SettingRepository
+import jp.seo.uma.eventchecker.repository.DataRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn

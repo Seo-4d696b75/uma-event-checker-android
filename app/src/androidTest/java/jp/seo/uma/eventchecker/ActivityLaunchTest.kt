@@ -12,7 +12,7 @@ import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.*
-import jp.seo.uma.eventchecker.core.DataRepository
+import jp.seo.uma.eventchecker.repository.DataRepository
 import jp.seo.uma.eventchecker.core.EventDataInfo
 import jp.seo.uma.eventchecker.core.NetworkClient
 import jp.seo.uma.eventchecker.ui.MainActivity

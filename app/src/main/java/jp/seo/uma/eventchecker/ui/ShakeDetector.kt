@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.core
+package jp.seo.uma.eventchecker.ui
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -13,7 +13,15 @@ class ShakeDetector : SensorEventListener {
     private var lastDetectTime: Long? = null
     private var shakeCnt = 0
 
-    val shakeEvent = LiveEvent<Unit>()
+    private var callback: (() -> Unit)? = null
+
+    fun registerCallback(callback: () -> Unit) {
+        this.callback = callback
+    }
+
+    fun unregisterCallback() {
+        callback = null
+    }
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
@@ -41,7 +49,7 @@ class ShakeDetector : SensorEventListener {
             lastDetectTime = current.time
             if (++shakeCnt >= 3) {
                 Log.d("Sensor", "shake detected speed:$speed")
-                shakeEvent.call(Unit)
+                callback?.invoke()
                 lastDetectTime = 0L
                 shakeCnt = 0
             }

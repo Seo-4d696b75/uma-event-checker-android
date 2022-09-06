@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.every
 import io.mockk.spyk
-import jp.seo.uma.eventchecker.core.DataRepository
+import jp.seo.uma.eventchecker.repository.DataRepository
 import jp.seo.uma.eventchecker.core.NetworkClient
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat

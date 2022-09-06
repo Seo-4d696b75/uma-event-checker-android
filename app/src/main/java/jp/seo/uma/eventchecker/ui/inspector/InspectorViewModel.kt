@@ -1,18 +1,18 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.ui.inspector
 
 import android.graphics.Bitmap
 import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.core.DataRepository
-import jp.seo.uma.eventchecker.core.SettingRepository
+import jp.seo.uma.eventchecker.repository.DataRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
 import jp.seo.uma.eventchecker.img.EventType
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.model.GameEvent
 import javax.inject.Inject
 
 @HiltViewModel
-class DebugDialogViewModel @Inject constructor(
+class InspectorViewModel @Inject constructor(
     private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
     private val dataRepository: DataRepository,

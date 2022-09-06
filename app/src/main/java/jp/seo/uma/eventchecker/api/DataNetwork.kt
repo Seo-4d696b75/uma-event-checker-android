@@ -4,7 +4,6 @@ import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.addProgressCallback
 import jp.seo.uma.eventchecker.model.GameEventData
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -34,6 +33,7 @@ interface DataNetwork {
     suspend fun getIconImage(@Path("file_name") name: String): ResponseBody
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 class NetworkClient @Inject constructor(
     @ApplicationContext context: Context
 ) {
@@ -55,12 +55,14 @@ class NetworkClient @Inject constructor(
     }
 }
 
+private val json = Json { ignoreUnknownKeys = true }
+
 @ExperimentalSerializationApi
 fun getDataNetwork(baseURL: String, progress: ((Long) -> Unit)): DataNetwork {
     val client = OkHttpClient.Builder()
         .addProgressCallback(progress)
         .build()
-    val factory = Json { ignoreUnknownKeys = true }
+    val factory = json
         .asConverterFactory(MediaType.get("application/json"))
     return Retrofit.Builder()
         .baseUrl(baseURL)
@@ -76,7 +78,7 @@ data class EventDataInfo(
     val version: Long,
     @SerialName("size")
     val size: Long
-) {
+) : java.io.Serializable {
 
     fun fileSize(): String {
         var bytes = size

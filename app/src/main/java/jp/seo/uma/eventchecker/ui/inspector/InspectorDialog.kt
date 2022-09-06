@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.ui.inspector
 
 import android.app.AlertDialog
 import android.app.Dialog
@@ -13,9 +13,9 @@ import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.databinding.DialogDebugBinding
 
 @AndroidEntryPoint
-class DebugDialog : DialogFragment() {
+class InspectorDialog : DialogFragment() {
 
-    private val viewModel: DebugDialogViewModel by viewModels()
+    private val viewModel: InspectorViewModel by viewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val context = requireContext()
@@ -37,7 +37,7 @@ class DebugDialog : DialogFragment() {
             setPositiveButton(R.string.debug_dialog_close) { _, _ ->
                 dismiss()
                 viewModel.onDismiss()
-                setFragmentResult(DebugDialogLaunchActivity.FRAGMENT_CLOSE_KEY, bundleOf())
+                setFragmentResult(InspectorDialogLaunchActivity.FRAGMENT_CLOSE_KEY, bundleOf())
             }
         }.create().apply {
             setCanceledOnTouchOutside(false)

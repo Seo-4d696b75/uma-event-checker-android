@@ -2,7 +2,6 @@ package jp.seo.uma.eventchecker.ui
 
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
@@ -10,6 +9,7 @@ import androidx.databinding.BindingAdapter
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.img.EventType
 import jp.seo.uma.eventchecker.model.GameEvent
+import jp.seo.uma.eventchecker.ui.overlay.EventChoiceAdapter
 
 /**
  * @author Seo-4d696b75

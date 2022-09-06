@@ -1,6 +1,6 @@
 package jp.seo.uma.eventchecker.model
 
-import jp.seo.uma.eventchecker.core.normalizeForComparison
+import jp.seo.uma.eventchecker.repository.normalizeForComparison
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

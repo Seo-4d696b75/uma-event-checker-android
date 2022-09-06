@@ -6,7 +6,7 @@
 
         <variable
             name="viewModel"
-            type="jp.seo.uma.eventchecker.core.MainViewModel" />
+            type="jp.seo.uma.eventchecker.ui.update.DataUpdateViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            android:text="@{viewModel.dataUpdateStatus}"
+            android:text="@{viewModel.status}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
-            android:text="@{@string/update_progress(viewModel.dataUpdateProgress)}"
+            android:text="@{@string/update_progress(viewModel.progress)}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/text_data_update_status" />
 
@@ -39,7 +39,7 @@
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:min="0"
             android:max="100"
-            android:progress="@{viewModel.dataUpdateProgress}"
+            android:progress="@{viewModel.progress}"
             app:layout_constraintTop_toBottomOf="@+id/text_data_update_status"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

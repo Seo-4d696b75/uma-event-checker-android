@@ -4,8 +4,8 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
-import jp.seo.uma.eventchecker.core.DataRepository
-import jp.seo.uma.eventchecker.core.SettingRepository
+import jp.seo.uma.eventchecker.repository.DataRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
 import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
 
 

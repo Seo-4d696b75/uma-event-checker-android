@@ -12,11 +12,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.core.CheckerService
-import jp.seo.uma.eventchecker.core.MainViewModel
 import jp.seo.uma.eventchecker.databinding.ActivityMainBinding
+import jp.seo.uma.eventchecker.repository.AppEvent
+import jp.seo.uma.eventchecker.ui.update.DataUpdateDialog
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
@@ -92,27 +96,33 @@ class MainActivity : AppCompatActivity() {
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
 
-        viewModel.update.observe(this, "main-activity") {
-            when (it) {
-                is MainViewModel.DataUpdateEvent.Request -> {
-                    val dialog = DataUpdateDialog.getRequestDialog(it.info)
-                    dialog.show(supportFragmentManager, "data-update-request")
-                }
-                is MainViewModel.DataUpdateEvent.Start -> {
-                    val dialog = DataUpdateDialog.getProgressDialog()
-                    dialog.show(supportFragmentManager, "data-update-progress")
-                }
-                else -> {
+        // handle event
+        viewModel.event
+            .flowWithLifecycle(lifecycle)
+            .onEach {
+                when (it) {
+                    is AppEvent.Error -> {
+                        Toast.makeText(this, it.e.message, Toast.LENGTH_LONG).show()
+                        stopService()
+                        finish()
+                    }
+                    is AppEvent.DataUpdateRequest -> {
+                        val dialog = DataUpdateDialog.getRequestDialog(it.info)
+                        dialog.show(supportFragmentManager, "confirm-update-data")
+                    }
+                    is AppEvent.DataUpdateConfirm -> {
+                        if (it.confirm) {
+                            // run update via network
+                            val dialog = DataUpdateDialog.getProgressDialog(it.info)
+                            dialog.show(supportFragmentManager, "run-update-data")
+                        } else {
+                            // load local storage
+                            viewModel.loadData()
+                        }
+                    }
                 }
             }
-
-        }
-
-        viewModel.error.observe(this, "main-activity") {
-            Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
-            stopService()
-            finish()
-        }
+            .launchIn(lifecycleScope)
 
         binding.buttonStart.setOnClickListener {
             when (viewModel.runningCapture.value) {

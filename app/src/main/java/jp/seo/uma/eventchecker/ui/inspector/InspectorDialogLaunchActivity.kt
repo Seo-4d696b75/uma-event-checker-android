@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.ui.inspector
 
 import android.os.Bundle
 import android.util.Log
@@ -6,10 +6,10 @@ import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class DebugDialogLaunchActivity : AppCompatActivity() {
+class InspectorDialogLaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val dialog = DebugDialog()
+        val dialog = InspectorDialog()
         dialog.show(supportFragmentManager, null)
 
         supportFragmentManager.setFragmentResultListener(FRAGMENT_CLOSE_KEY, this) { _, _ ->

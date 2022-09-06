@@ -9,7 +9,7 @@
 
         <variable
             name="viewModel"
-            type="jp.seo.uma.eventchecker.core.MainViewModel" />
+            type="jp.seo.uma.eventchecker.ui.MainViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
