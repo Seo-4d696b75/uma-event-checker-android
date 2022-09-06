@@ -7,6 +7,7 @@
         <entry key="app/src/main/res/layout/dialog_update_progress.xml" value="0.24230072463768115" />
         <entry key="app/src/main/res/layout/dialog_update_request.xml" value="0.290625" />
         <entry key="app/src/main/res/layout/layout.xml" value="0.24230072463768115" />
+        <entry key="app/src/main/res/layout/overlay_main.xml" value="0.1" />
       </map>
     </option>
   </component>
