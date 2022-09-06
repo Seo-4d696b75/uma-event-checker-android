@@ -8,31 +8,32 @@
 
         <variable
             name="viewModel"
-            type="jp.seo.uma.eventchecker.core.MainViewModel" />
+            type="jp.seo.uma.eventchecker.ui.overlay.OverlayViewModel" />
     </data>
+
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="3dp"
-        android:visibility="@{viewModel.currentEvent != null ? View.VISIBLE : View.GONE}">
+        android:visibility="@{viewModel.show ? View.VISIBLE : View.GONE}">
 
         <LinearLayout
             android:layout_width="@dimen/overlay_width"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="#AAFFFFFF"
+            android:orientation="vertical"
             android:padding="7dp">
 
             <TextView
                 android:id="@+id/text_overlay_title"
-                android:textColor="@color/text_black"
-                android:textStyle="bold"
-                android:lines="1"
-                android:textSize="@dimen/text_size_overlay_large"
-                app:gameEventTitle="@{viewModel.currentEvent}"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/text_black"
+                android:textSize="@dimen/text_size_overlay_large"
+                android:textStyle="bold"
+                app:gameEventTitle="@{viewModel.currentEvent}" />
 
             <ListView
                 android:id="@+id/list_overlay_choices"

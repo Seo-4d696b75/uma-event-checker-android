@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.WindowManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,7 +19,7 @@ class SettingRepository @Inject constructor(
     @ApplicationContext context: Context
 ) {
 
-    var isDebugDialogShown = false
+    val isDebugDialogShown = MutableStateFlow(false)
 
     var screenWidth: Int = 0
     var screenHeight: Int = 0

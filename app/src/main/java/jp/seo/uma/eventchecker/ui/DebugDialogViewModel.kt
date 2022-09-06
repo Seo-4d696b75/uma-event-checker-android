@@ -49,6 +49,6 @@ class DebugDialogViewModel @Inject constructor(
         get() = _currentEvent
 
     fun onDismiss() {
-        setting.isDebugDialogShown = false
+        setting.isDebugDialogShown.value = false
     }
 }

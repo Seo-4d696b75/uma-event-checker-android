@@ -9,7 +9,6 @@ import android.graphics.PixelFormat
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
@@ -17,9 +16,9 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.ui.DebugDialogLaunchActivity
+import jp.seo.uma.eventchecker.ui.overlay.createOverlayView
 import javax.inject.Inject
 
 /**
@@ -45,13 +44,13 @@ class CheckerService : LifecycleService() {
     lateinit var capture: ScreenCapture
 
     @Inject
-    lateinit var repository: DataRepository
+    lateinit var dataRepository: DataRepository
 
     @Inject
     lateinit var imageProcess: ImageProcess
 
     @Inject
-    lateinit var setting: SettingRepository
+    lateinit var settingRepository: SettingRepository
 
     private lateinit var windowManager: WindowManager
     private lateinit var sensorManager: SensorManager
@@ -59,7 +58,7 @@ class CheckerService : LifecycleService() {
     private var view: View? = null
 
     private val viewModel: MainViewModel by lazy {
-        MainViewModel.getInstance(ViewModelStore(), repository, imageProcess, setting, capture)
+        MainViewModel.getInstance(ViewModelStore(), dataRepository, imageProcess, settingRepository, capture)
     }
 
     private val shakeDetector = ShakeDetector()
@@ -120,7 +119,6 @@ class CheckerService : LifecycleService() {
 
 
         // init overlay view
-        val inflater = LayoutInflater.from(applicationContext)
         val layerType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         val layoutParam = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -135,15 +133,9 @@ class CheckerService : LifecycleService() {
         )
         layoutParam.gravity = Gravity.END or Gravity.TOP
         layoutParam.screenBrightness = -1f
-        val binding = OverlayMainBinding.inflate(inflater)
-        binding.viewModel = viewModel
-        binding.lifecycleOwner = this
-        this.view = binding.root
-        binding.listOverlayChoices.apply {
-            divider = null
-            dividerHeight = 0
-        }
-        windowManager.addView(binding.root, layoutParam)
+        val overlay = createOverlayView(dataRepository, settingRepository, this)
+        this.view = overlay
+        windowManager.addView(overlay, layoutParam)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -154,8 +146,8 @@ class CheckerService : LifecycleService() {
         )
 
         shakeDetector.shakeEvent.observe(this, "checker-service") {
-            if (setting.isDebugDialogShown) return@observe
-            setting.isDebugDialogShown = true
+            if (settingRepository.isDebugDialogShown.value) return@observe
+            settingRepository.isDebugDialogShown.value = true
             val intent = Intent(applicationContext, DebugDialogLaunchActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
