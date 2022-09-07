@@ -67,7 +67,7 @@ class InspectorPageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) 
 
     override fun createFragment(position: Int) = when (position) {
         0 -> MonitorFragment()
-        1 -> MonitorFragment()
+        1 -> SearchFragment()
         else -> throw IndexOutOfBoundsException()
     }
 }
