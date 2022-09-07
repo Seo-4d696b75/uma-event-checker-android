@@ -12,7 +12,7 @@ import jp.seo.uma.eventchecker.model.GameEvent
 import javax.inject.Inject
 
 @HiltViewModel
-class InspectorViewModel @Inject constructor(
+class MonitorViewModel @Inject constructor(
     private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
     private val dataRepository: DataRepository,

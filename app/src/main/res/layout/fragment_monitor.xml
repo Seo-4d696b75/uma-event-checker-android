@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="jp.seo.uma.eventchecker.ui.inspector.MonitorViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/text_section_src"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="入力データ"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_is_game_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="対象画面の検出:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_section_src" />
+
+        <TextView
+            android:id="@+id/text_is_game"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.isGameScreen ? `true` : `false`}"
+            app:layout_constraintStart_toEndOf="@id/text_is_game_title"
+            app:layout_constraintTop_toTopOf="@id/text_is_game_title"
+            tools:text="false" />
+
+        <TextView
+            android:id="@+id/text_event_type_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="検出したイベント種類:"
+            app:layout_constraintStart_toStartOf="@id/text_is_game_title"
+            app:layout_constraintTop_toBottomOf="@id/text_is_game_title" />
+
+        <TextView
+            eventType="@{viewModel.eventType}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:layout_constraintStart_toEndOf="@id/text_event_type_title"
+            app:layout_constraintTop_toTopOf="@id/text_event_type_title"
+            tools:text="none" />
+
+        <TextView
+            android:id="@+id/text_image_text_gray_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OCR対象画像:"
+            app:layout_constraintStart_toStartOf="@id/text_is_game_title"
+            app:layout_constraintTop_toBottomOf="@id/text_event_type_title" />
+
+        <ImageView
+            android:id="@+id/image_text_gray"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_image_text_gray_title"
+            app:srcBitmap="@{viewModel.textImg}"
+            tools:src="@drawable/ic_image_not_supported" />
+
+        <TextView
+            android:id="@+id/text_section_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="検出＆検索の結果"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_text_gray" />
+
+        <TextView
+            android:id="@+id/text_detected_string_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="OCR文字列:"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_section_result" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.ocrText}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_string_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_string_title"
+            tools:text="detected string" />
+
+        <TextView
+            android:id="@+id/text_detected_event_owner_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="キャラ:"
+            app:layout_constraintStart_toStartOf="@id/text_detected_string_title"
+            app:layout_constraintTop_toBottomOf="@id/text_detected_string_title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@{viewModel.currentEvent == null ? null : viewModel.currentEvent.ownerName}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_event_owner_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_event_owner_title"
+            tools:text="detected event owner" />
+
+        <TextView
+            android:id="@+id/text_detected_event_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="イベント:"
+            app:layout_constraintStart_toStartOf="@id/text_detected_string_title"
+            app:layout_constraintTop_toBottomOf="@id/text_detected_event_owner_title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:gameEventTitle="@{viewModel.currentEvent}"
+            app:layout_constraintStart_toEndOf="@id/text_detected_event_title"
+            app:layout_constraintTop_toTopOf="@id/text_detected_event_title"
+            tools:text="detected event title" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
