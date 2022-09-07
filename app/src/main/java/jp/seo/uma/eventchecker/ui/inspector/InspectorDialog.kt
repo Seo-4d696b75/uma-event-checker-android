@@ -10,7 +10,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.databinding.DialogDebugBinding
+import jp.seo.uma.eventchecker.databinding.DialogInspectorBinding
 
 @AndroidEntryPoint
 class InspectorDialog : DialogFragment() {
@@ -22,9 +22,9 @@ class InspectorDialog : DialogFragment() {
 
         viewModel.setUiState()
 
-        val binding = DataBindingUtil.inflate<DialogDebugBinding>(
+        val binding = DataBindingUtil.inflate<DialogInspectorBinding>(
             layoutInflater,
-            R.layout.dialog_debug,
+            R.layout.dialog_inspector,
             null,
             false
         ).also {
