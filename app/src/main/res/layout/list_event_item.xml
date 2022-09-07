@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="result"
+            type="jp.seo.uma.eventchecker.repository.SearchResult" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="1dp">
+
+        <TextView
+            android:id="@+id/text_search_score"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            app:searchScore="@{result.score}"
+            tools:text="0.1234"
+            android:gravity="center_horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/img_event_symbol"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_uma_symbol"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/text_search_score"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_event_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:lines="1"
+            android:text="@{result.event.title}"
+            android:textColor="@color/text_gray"
+            android:textSize="@dimen/text_size_overlay_large"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/img_event_symbol"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="イベントタイトル" />
+
+        <TextView
+            android:id="@+id/text_event_owner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/text_event_title"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:text="@{result.event.ownerName}"
+            android:textColor="@color/text_gray"
+            android:textSize="@dimen/text_size_overlay"
+            android:textStyle="normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/text_event_title"
+            app:layout_constraintTop_toBottomOf="@id/text_event_title"
+            tools:text="キャラ名称" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

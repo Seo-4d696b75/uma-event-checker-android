@@ -46,3 +46,10 @@ fun setImageBitmap(view: ImageView, img: Bitmap?) {
 fun setEventType(view: TextView, type: EventType?) {
     view.text = type?.name ?: "none"
 }
+
+@BindingAdapter("searchScore")
+fun setScore(view: TextView, score: Float?) {
+    view.text = score?.let {
+        String.format("%.4f", it)
+    } ?: ""
+}
