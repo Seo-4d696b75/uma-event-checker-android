@@ -8,6 +8,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.img.readFloat
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,11 +33,15 @@ class SettingRepository @Inject constructor(
 
     var minUpdateInterval = context.resources.getInteger(R.integer.min_update_interval_ms).toLong()
 
+    private val _ocrThreshold = MutableStateFlow(0f)
+    val ocrThread: StateFlow<Float> = _ocrThreshold
+
     init {
         var resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
         statusBarHeight = context.resources.getDimensionPixelSize(resourceId)
         resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
         navigationBarHeight = context.resources.getDimensionPixelSize(resourceId)
+        _ocrThreshold.update { context.resources.readFloat(R.dimen.ocr_title_threshold) }
     }
 
     fun setMetrics(windowManager: WindowManager) {

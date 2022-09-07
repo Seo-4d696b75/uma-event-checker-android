@@ -7,7 +7,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.api.EventDataInfo
 import jp.seo.uma.eventchecker.api.NetworkClient
-import jp.seo.uma.eventchecker.img.readFloat
 import jp.seo.uma.eventchecker.img.saveFile
 import jp.seo.uma.eventchecker.model.EventOwners
 import jp.seo.uma.eventchecker.model.GameEvent
@@ -47,8 +46,6 @@ class DataRepository @Inject constructor(
     private var events: Array<GameEvent> = emptyArray()
     var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
         private set
-
-    private var ocrThreshold: Float = context.resources.readFloat(R.dimen.ocr_title_threshold)
 
     private val _initialized = MutableStateFlow(false)
     val initialized: StateFlow<Boolean> = _initialized
@@ -149,27 +146,70 @@ class DataRepository @Inject constructor(
         _initialized.update { true }
     }
 
-    fun searchForEvent(title: String): List<GameEvent>? {
-        val query = title.normalizeForComparison()
-        Log.d("EventData", "normalized query '$query'")
-        val algo = LevensteinDistance()
-        val score = events.map { event -> algo.getDistance(event.normalizedTitle, query) }
-        return score.maxOrNull()?.let { maxScore ->
-            if (maxScore > ocrThreshold) {
-                val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }
-                Log.d(
-                    "EventData",
-                    "search -> max score $maxScore, size ${list.size}, events[0]: ${list[0].title}"
-                )
-                list
-            } else {
-                Log.d(
-                    "EventData",
-                    "search -> max score: $maxScore < th: $ocrThreshold"
-                )
-                null
-            }
-        } ?: emptyList()
+    /**
+     * 指定した閾値以上のscoreのイベントを検索してソートしたリストを返す
+     */
+    fun searchForEvent(title: String, threshold: Float): List<SearchResult> {
+        val result = search(title)
+        val list = result.filter { it.score > threshold }
+        return if (list.isNotEmpty()) {
+            val maxScore = list.maxByOrNull { it.score }
+            Log.d(
+                "EventData",
+                "search -> max score $maxScore, size ${list.size}, events[0]: ${list[0].event.title}"
+            )
+            list.sortedByScore()
+        } else {
+            val maxScore = result.maxByOrNull { it.score }
+            Log.d(
+                "EventData",
+                "search -> max score: $maxScore < th: $threshold"
+            )
+            emptyList()
+        }
     }
 
+    /**
+     * 指定した最大の長さで、イベントをscoreでソートしたリストを返す
+     */
+    fun searchForEvent(title: String, maxSize: Int): List<SearchResult> {
+        val result = search(title)
+        return if (maxSize * 5 < result.size) {
+            val src = result.toMutableList()
+            val dst = mutableListOf<SearchResult>()
+            while (dst.size < maxSize && src.isNotEmpty()) {
+                var idx = 0
+                var max = 0f
+                src.forEachIndexed { i, r ->
+                    if (r.score > max) {
+                        max = r.score
+                        idx = i
+                    }
+                }
+                dst.add(src[idx])
+                src.removeAt(idx)
+            }
+            dst
+        } else {
+            result.sortedByScore().subList(0, maxSize)
+        }
+    }
+
+    private fun search(title: String): List<SearchResult> {
+        val query = title.normalizeForComparison()
+        if (query.isEmpty()) return emptyList()
+        Log.d("EventData", "normalized query '$query'")
+        val algo = LevensteinDistance()
+        return events.map {
+            val score = algo.getDistance(it.normalizedTitle, query)
+            SearchResult(it, score)
+        }
+    }
 }
+
+data class SearchResult(
+    val event: GameEvent,
+    val score: Float,
+)
+
+fun List<SearchResult>.sortedByScore() = sortedBy { -it.score }

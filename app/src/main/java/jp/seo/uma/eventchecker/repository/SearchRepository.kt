@@ -11,6 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class SearchRepository @Inject constructor(
     private val dataRepository: DataRepository,
+    private val settingRepository: SettingRepository,
 ) {
 
     private var eventTitle: String? = null
@@ -25,7 +26,8 @@ class SearchRepository @Inject constructor(
             return if (title == null) {
                 emptyList()
             } else {
-                dataRepository.searchForEvent(title)
+                val th = settingRepository.ocrThread.value
+                dataRepository.searchForEvent(title, th).map { it.event }
             }
         }
         return null
