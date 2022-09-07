@@ -4,18 +4,18 @@ import android.graphics.Bitmap
 import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.repository.DataRepository
-import jp.seo.uma.eventchecker.repository.SettingRepository
 import jp.seo.uma.eventchecker.img.EventType
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.model.GameEvent
+import jp.seo.uma.eventchecker.repository.SearchRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class MonitorViewModel @Inject constructor(
     private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
-    private val dataRepository: DataRepository,
+    private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
     @MainThread
@@ -24,7 +24,7 @@ class MonitorViewModel @Inject constructor(
         _ocrText = imgProcess.title.value
         _textImg = imgProcess.textImage.value
         _eventType = imgProcess.currentEventType.value
-        _currentEvent = dataRepository.currentEvent.value
+        _currentEvent = searchRepository.currentEvent.value
     }
 
     private var _isGameScreen: Boolean = false

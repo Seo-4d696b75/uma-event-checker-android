@@ -16,10 +16,7 @@ import androidx.lifecycle.LifecycleService
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.repository.AppRepository
-import jp.seo.uma.eventchecker.repository.DataRepository
-import jp.seo.uma.eventchecker.repository.ScreenCapture
-import jp.seo.uma.eventchecker.repository.SettingRepository
+import jp.seo.uma.eventchecker.repository.*
 import jp.seo.uma.eventchecker.ui.inspector.InspectorDialogLaunchActivity
 import jp.seo.uma.eventchecker.ui.overlay.createOverlayView
 import javax.inject.Inject
@@ -58,6 +55,9 @@ class CheckerService : LifecycleService() {
     @Inject
     lateinit var settingRepository: SettingRepository
 
+    @Inject
+    lateinit var searchRepository: SearchRepository
+
     private lateinit var windowManager: WindowManager
     private lateinit var sensorManager: SensorManager
 
@@ -69,7 +69,8 @@ class CheckerService : LifecycleService() {
             dataRepository,
             imageProcess,
             settingRepository,
-            capture
+            capture,
+            searchRepository,
         )
     }
 
@@ -145,7 +146,7 @@ class CheckerService : LifecycleService() {
         )
         layoutParam.gravity = Gravity.END or Gravity.TOP
         layoutParam.screenBrightness = -1f
-        val overlay = createOverlayView(dataRepository, settingRepository, this)
+        val overlay = createOverlayView(searchRepository, settingRepository, this)
         this.view = overlay
         windowManager.addView(overlay, layoutParam)
 

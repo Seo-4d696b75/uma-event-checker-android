@@ -3,8 +3,6 @@ package jp.seo.uma.eventchecker.repository
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.api.EventDataInfo
@@ -49,9 +47,11 @@ class DataRepository @Inject constructor(
     private var events: Array<GameEvent> = emptyArray()
     var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
         private set
+
     private var ocrThreshold: Float = context.resources.readFloat(R.dimen.ocr_title_threshold)
-    private val _currentEvent = MutableLiveData<GameEvent?>(null)
-    private val _initialized = MutableLiveData(false)
+
+    private val _initialized = MutableStateFlow(false)
+    val initialized: StateFlow<Boolean> = _initialized
 
     private val preferences = context.getSharedPreferences("main", MODE_PRIVATE)
 
@@ -103,7 +103,7 @@ class DataRepository @Inject constructor(
         events = data.events
         eventOwners = data.owners
         val dir = context.filesDir
-        File(dir, DATA_FILE).writeText(Json.encodeToString(data), Charsets.UTF_8)
+        File(dir, DATA_FILE).writeText(json.encodeToString(data), Charsets.UTF_8)
         val iconDir = File(dir, "icon")
         if (!iconDir.exists() || !iconDir.isDirectory) {
             if (!iconDir.mkdir()) {
@@ -134,58 +134,26 @@ class DataRepository @Inject constructor(
             context = Dispatchers.IO
         )
         dataVersion = info.version
-        _initialized.postValue(true)
+        _initialized.update { true }
     }
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun loadData() = withContext(Dispatchers.IO) {
         val file = File(context.filesDir, DATA_FILE)
         if (!file.exists() || !file.isFile) throw IllegalStateException(context.getString(R.string.error_data_not_found))
         val str = file.readText(Charsets.UTF_8)
-        val data = Json { ignoreUnknownKeys = true }.decodeFromString<GameEventData>(str)
+        val data = json.decodeFromString<GameEventData>(str)
         events = data.events
         eventOwners = data.owners
-        _initialized.postValue(true)
+        _initialized.update { true }
     }
 
-    private var eventTitle: String? = null
-
-    fun setCurrentEvent(events: List<GameEvent>, ownerName: String?) {
-        if (events.isEmpty()) {
-            _currentEvent.postValue(null)
-        } else if (events.size == 1 || ownerName == null) {
-            _currentEvent.postValue(events[0])
-        } else {
-            var event = events[0]
-            val filter = events.filter { it.ownerName == ownerName }
-            if (filter.isNotEmpty()) {
-                event = filter[0]
-                Log.d("EventData", "filtered size ${filter.size}, [0]-> ${event.title}")
-            } else {
-                Log.d("EventData", "no event remains after filter")
-            }
-            _currentEvent.postValue(event)
-        }
-    }
-
-    val currentEvent: LiveData<GameEvent?> = _currentEvent
-    val initialized: LiveData<Boolean> = _initialized
-
-    suspend fun searchForEvent(title: String?): List<GameEvent>? {
-        if (eventTitle != title) {
-            eventTitle = title
-            return if (title == null) {
-                emptyList()
-            } else {
-                searchEventTitle(title.normalizeForComparison())
-            }
-        }
-        return null
-    }
-
-    private suspend fun searchEventTitle(title: String): List<GameEvent> {
-        Log.d("EventData", "normalized query '$title'")
+    fun searchForEvent(title: String): List<GameEvent>? {
+        val query = title.normalizeForComparison()
+        Log.d("EventData", "normalized query '$query'")
         val algo = LevensteinDistance()
-        val score = events.map { event -> algo.getDistance(event.normalizedTitle, title) }
+        val score = events.map { event -> algo.getDistance(event.normalizedTitle, query) }
         return score.maxOrNull()?.let { maxScore ->
             if (maxScore > ocrThreshold) {
                 val list = events.toList().filterIndexed { idx, e -> score[idx] >= maxScore }

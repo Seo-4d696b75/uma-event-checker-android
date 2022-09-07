@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../layout/custom_preview.xml" value="0.17591658257652204" />
         <entry key="app/src/main/res/layout/dialog_debug.xml" value="0.1842872153524417" />
         <entry key="app/src/main/res/layout/dialog_inspector.xml" value="0.40851449275362317" />
         <entry key="app/src/main/res/layout/dialog_update_progress.xml" value="0.24230072463768115" />
@@ -10,6 +11,8 @@
         <entry key="app/src/main/res/layout/fragment_monitor.xml" value="0.4674336751302084" />
         <entry key="app/src/main/res/layout/fragment_search.xml" value="0.28958333333333336" />
         <entry key="app/src/main/res/layout/layout.xml" value="0.24230072463768115" />
+        <entry key="app/src/main/res/layout/list_choice_item.xml" value="0.4116847826086957" />
+        <entry key="app/src/main/res/layout/list_event_item.xml" value="0.4116847826086957" />
         <entry key="app/src/main/res/layout/overlay_main.xml" value="0.1" />
       </map>
     </option>

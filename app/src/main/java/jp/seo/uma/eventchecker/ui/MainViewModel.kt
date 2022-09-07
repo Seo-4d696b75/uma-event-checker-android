@@ -5,15 +5,17 @@ import android.media.projection.MediaProjection
 import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.img.toMat
-import jp.seo.uma.eventchecker.repository.AppRepository
-import jp.seo.uma.eventchecker.repository.DataRepository
-import jp.seo.uma.eventchecker.repository.ScreenCapture
-import jp.seo.uma.eventchecker.repository.SettingRepository
+import jp.seo.uma.eventchecker.repository.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -29,9 +31,14 @@ class MainViewModel @Inject constructor(
     private val imgProcess: ImageProcess,
     private val settingRepository: SettingRepository,
     private val capture: ScreenCapture,
+    private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
-    val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
+    val loading = combine(
+        imgProcess.hasInitialized.asFlow(),
+        dataRepository.initialized,
+    ) { v1, v2 -> !v1 || !v2 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val event = appRepository.event
 
@@ -78,11 +85,11 @@ class MainViewModel @Inject constructor(
         val start = SystemClock.uptimeMillis()
         val mat = imgProcess.copyToBitmap(img).toMat()
         val title = imgProcess.getEventTitle(mat)
-        dataRepository.searchForEvent(title)?.let { events ->
+        searchRepository.searchForEvent(title)?.let { events ->
             val ownerName = if (events.size <= 1) null else {
                 imgProcess.getEventOwner(mat)
             }
-            dataRepository.setCurrentEvent(events, ownerName)
+            searchRepository.setCurrentEvent(events, ownerName)
         }
         val now = SystemClock.uptimeMillis()
         val wait = start + settingRepository.minUpdateInterval - now

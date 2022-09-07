@@ -4,18 +4,18 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
-import jp.seo.uma.eventchecker.repository.DataRepository
-import jp.seo.uma.eventchecker.repository.SettingRepository
 import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
+import jp.seo.uma.eventchecker.repository.SearchRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
 
 
 fun Context.createOverlayView(
-    data: DataRepository,
+    searchRepository: SearchRepository,
     setting: SettingRepository,
     lifecycleOwner: LifecycleOwner,
 ): View {
     val binding = OverlayMainBinding.inflate(LayoutInflater.from(applicationContext))
-    val viewModel = OverlayViewModel(data, setting)
+    val viewModel = OverlayViewModel(searchRepository, setting)
     binding.viewModel = viewModel
     binding.lifecycleOwner = lifecycleOwner
     binding.listOverlayChoices.apply {
