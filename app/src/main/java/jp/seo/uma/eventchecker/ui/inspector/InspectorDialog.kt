@@ -32,9 +32,9 @@ class InspectorDialog : DialogFragment() {
         }
 
         return AlertDialog.Builder(context).apply {
-            setTitle(R.string.debug_dialog_title)
+            setTitle(R.string.inspector_dialog_title)
             setView(binding.root)
-            setPositiveButton(R.string.debug_dialog_close) { _, _ ->
+            setPositiveButton(R.string.inspector_dialog_close) { _, _ ->
                 dismiss()
                 viewModel.onDismiss()
                 setFragmentResult(InspectorDialogLaunchActivity.FRAGMENT_CLOSE_KEY, bundleOf())
