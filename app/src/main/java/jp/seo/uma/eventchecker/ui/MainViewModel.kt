@@ -87,7 +87,8 @@ class MainViewModel @Inject constructor(
         val title = imgProcess.getEventTitle(mat)
         searchRepository.searchForEvent(title)?.let { events ->
             val ownerName = if (events.size <= 1) null else {
-                imgProcess.getEventOwner(mat)
+                // TODO イベントタイプを考慮した検索
+                imgProcess.getEventOwner(mat)?.name
             }
             searchRepository.setCurrentEvent(events, ownerName)
         }

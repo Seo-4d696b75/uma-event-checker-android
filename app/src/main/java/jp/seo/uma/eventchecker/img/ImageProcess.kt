@@ -10,6 +10,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import dagger.hilt.android.qualifiers.ApplicationContext
+import jp.seo.uma.eventchecker.model.CharaEventOwner
+import jp.seo.uma.eventchecker.model.SupportEventOwner
 import jp.seo.uma.eventchecker.repository.DataRepository
 import jp.seo.uma.eventchecker.repository.SettingRepository
 import kotlinx.coroutines.Dispatchers
@@ -56,8 +58,8 @@ class ImageProcess @Inject constructor(
     private lateinit var headerDetector: GameHeaderDetector
     private lateinit var eventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
-    private lateinit var charaEventOwnerDetector: TemplatesMatcher
-    private lateinit var supportEventOwnerDetector: TemplatesMatcher
+    private lateinit var charaEventOwnerDetector: TemplatesMatcher<CharaEventOwner>
+    private lateinit var supportEventOwnerDetector: TemplatesMatcher<SupportEventOwner>
 
     @MainThread
     suspend fun init() {
@@ -144,11 +146,25 @@ class ImageProcess @Inject constructor(
      *
      * **Note** Be sure to call after [getEventTitle] returns non null value, or an exception will be thrown
      */
-    suspend fun getEventOwner(img: Mat): String {
+    suspend fun getEventOwner(img: Mat): EventOwnerDetectResult? {
         return when (eventType) {
-            EventType.Main -> "URA"
-            EventType.Support -> supportEventOwnerDetector.find(img).name
-            EventType.Chara -> charaEventOwnerDetector.find(img).name
+            EventType.Main -> null
+            EventType.Support -> {
+                val result = supportEventOwnerDetector.find(img)
+                EventOwnerDetectResult.Support(
+                    result.data,
+                    result.score,
+                    result.img,
+                )
+            }
+            EventType.Chara -> {
+                val result = charaEventOwnerDetector.find(img)
+                EventOwnerDetectResult.Chara(
+                    result.data,
+                    result.score,
+                    result.img,
+                )
+            }
             null -> throw IllegalStateException("event type not found")
         }
     }
