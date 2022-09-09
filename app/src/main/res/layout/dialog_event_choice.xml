@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="jp.seo.uma.eventchecker.ui.overlay.EventChoiceViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:padding="10dp">
+
+        <include
+            android:id="@+id/include_event_choice"
+            layout="@layout/fragment_event_choice"
+            app:viewModel="@{viewModel}" />
+    </RelativeLayout>
+</layout>

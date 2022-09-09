@@ -35,11 +35,12 @@
                 android:textStyle="bold"
                 app:gameEventTitle="@{viewModel.currentEvent}" />
 
-            <ListView
-                android:id="@+id/list_overlay_choices"
+            <include
+                android:id="@+id/include_event_choice"
+                layout="@layout/fragment_event_choice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:gameEventChoice="@{viewModel.currentEvent}" />
+                app:viewModel="@{viewModel}" />
         </LinearLayout>
 
     </RelativeLayout>

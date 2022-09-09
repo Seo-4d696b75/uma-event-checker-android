@@ -20,7 +20,7 @@ data class GameEvent(
     val titleKana: String,
     @SerialName("choices")
     val choices: Array<EventChoice>
-) {
+): java.io.Serializable {
 
     companion object {
         private val pattern = Regex("(?<origin>レース.+?)\\([0-9].+?\\)")

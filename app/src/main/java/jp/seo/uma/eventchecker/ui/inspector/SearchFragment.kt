@@ -2,6 +2,7 @@ package jp.seo.uma.eventchecker.ui.inspector
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,7 +44,13 @@ class SearchFragment : Fragment() {
             }
         )
         val context = requireContext()
-        val adapter = GamaEventAdapter(context)
+        val adapter = GamaEventAdapter(context).apply {
+            onItemClickListener = {
+                Log.d("Search", "onItemClicked $it")
+                val dialog = EventChoiceDialog.getInstance(it.event)
+                dialog.show(childFragmentManager, "event-choice")
+            }
+        }
         binding.listEventSearch.also {
             it.adapter = adapter
             it.layoutManager = LinearLayoutManager(context).apply {
@@ -82,6 +89,7 @@ class SearchFragment : Fragment() {
             SearchResultComparator()
         ) {
         private val inflater = LayoutInflater.from(context)
+        var onItemClickListener: ((SearchResult) -> Unit)? = null
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchResultViewHolder {
             val binding = ListEventItemBinding.inflate(inflater)
@@ -91,6 +99,9 @@ class SearchFragment : Fragment() {
         override fun onBindViewHolder(holder: SearchResultViewHolder, position: Int) {
             val result = getItem(position)
             holder.binding.result = result
+            holder.binding.containerEventItem.setOnClickListener {
+                onItemClickListener?.invoke(result)
+            }
         }
 
     }

@@ -14,7 +14,7 @@ import javax.inject.Inject
 class OverlayViewModel @Inject constructor(
     searchRepository: SearchRepository,
     setting: SettingRepository,
-) : ViewModel() {
+) : ViewModel(), EventChoiceViewModel {
 
     val show = combine(
         searchRepository.currentEvent,
@@ -27,5 +27,5 @@ class OverlayViewModel @Inject constructor(
         false,
     )
 
-    val currentEvent = searchRepository.currentEvent
+    override val currentEvent = searchRepository.currentEvent
 }

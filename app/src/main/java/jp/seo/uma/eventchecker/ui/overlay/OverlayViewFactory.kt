@@ -18,7 +18,7 @@ fun Context.createOverlayView(
     val viewModel = OverlayViewModel(searchRepository, setting)
     binding.viewModel = viewModel
     binding.lifecycleOwner = lifecycleOwner
-    binding.listOverlayChoices.apply {
+    binding.includeEventChoice.listGameEvent.apply {
         divider = null
         dividerHeight = 0
     }
