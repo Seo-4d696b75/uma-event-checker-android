@@ -191,7 +191,7 @@ class DataRepository @Inject constructor(
             }
             dst
         } else {
-            result.sortedByScore().subList(0, maxSize)
+            result.sortedByScore().subList(0, min(maxSize, result.size))
         }
     }
 
