@@ -5,7 +5,6 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.EventType
-import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.model.GameEvent
 import jp.seo.uma.eventchecker.repository.SearchRepository
 import jp.seo.uma.eventchecker.repository.SettingRepository
@@ -13,17 +12,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MonitorViewModel @Inject constructor(
-    private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
     private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
     @MainThread
     fun setUiState() {
-        _isGameScreen = imgProcess.isGameScreen.value ?: false
-        _ocrText = imgProcess.title.value
-        _textImg = imgProcess.textImage.value
-        _eventType = imgProcess.currentEventType.value
+        _isGameScreen = searchRepository.isGameScreen.value
+        _ocrText = searchRepository.title.value
+        _textImg = searchRepository.textImage.value
+        _eventType = searchRepository.currentEventType.value
         _currentEvent = searchRepository.currentEvent.value
     }
 

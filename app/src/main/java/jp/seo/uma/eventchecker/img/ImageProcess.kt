@@ -15,7 +15,6 @@ import jp.seo.uma.eventchecker.repository.SettingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat
 import java.io.File
@@ -34,38 +33,9 @@ class ImageProcess @Inject constructor(
 ) {
 
     companion object {
-
         const val OCR_DATA_DIR = "tessdata"
         const val OCR_TRAINED_DATA = "jpn.traineddata"
     }
-
-    private val _title = MutableStateFlow<String?>(null)
-
-    /**
-     * 検出したイベントタイトル文字列
-     */
-    val title: StateFlow<String?> = _title
-
-    private val _textImage = MutableStateFlow<Bitmap?>(null)
-
-    /**
-     * イベントタイトルを検出した元画像（白黒変換済み）
-     */
-    val textImage: StateFlow<Bitmap?> = _textImage
-
-    private val _eventType = MutableStateFlow<EventType?>(null)
-
-    /**
-     * 検出されたイベントタイプ
-     */
-    val currentEventType: StateFlow<EventType?> = _eventType
-
-    private val _isGameScreen = MutableStateFlow<Boolean>(false)
-
-    /**
-     * ゲーム画面の検出結果
-     */
-    val isGameScreen: StateFlow<Boolean> = _isGameScreen
 
     private val initialized = MutableStateFlow(false)
     private var _initialized = false
@@ -129,43 +99,27 @@ class ImageProcess @Inject constructor(
         return crop
     }
 
-    private var eventType: EventType? = null
-
     /**
-     * Gets event title from the screen image
-     *
-     * @param img bitmap of the screen without status-bar nor navigation-bar
+     * 現在の画面がイベント検索対象のゲーム画面か判定する
      */
-    fun getEventTitle(img: Mat): Pair<EventType, String>? {
-        if (!_initialized) return null
-        val isGame = headerDetector.detect(img)
-        _isGameScreen.update { isGame }
-        Log.d("Img", "check is-target $isGame")
-        if (isGame) {
-            val type = eventTypeDetector.detect(img)
-            Log.d("Img", "event type '${type.toString()}'")
-            if (type != null) {
-                val title = extractEventTitle(img, type)
-                _title.update { title }
-                _eventType.update { type }
-                eventType = type
-                return type to title
-            }
-        }
-        eventType = null
-        _textImage.update { null }
-        _title.update { null }
-        _eventType.update { null }
-        return null
-    }
+    fun isGameScreen(img: Mat): Boolean = if (_initialized) {
+        headerDetector.detect(img)
+    } else throw IllegalStateException("not initialized")
 
     /**
-     * Gets what type event is now shown on the screen
+     * イベントタイプを検出する
+     */
+    fun getEventType(img: Mat): EventType? = if (_initialized) {
+        eventTypeDetector.detect(img)
+    } else throw IllegalStateException("not initialized")
+
+    /**
+     * ゲームイベントの所有者を検出する
      *
      * **Note** Be sure to call after [getEventTitle] returns non null value, or an exception will be thrown
      */
-    suspend fun getEventOwner(img: Mat): EventOwnerDetectResult {
-        return when (eventType) {
+    suspend fun getEventOwner(img: Mat, type: EventType) = if (_initialized) {
+        when (type) {
             EventType.Scenario -> throw IllegalStateException("cannot to detect uma of the event owner, because current detected type is Scenario")
             EventType.SupportCard -> {
                 val result = supportEventOwnerDetector.find(img)
@@ -183,17 +137,21 @@ class ImageProcess @Inject constructor(
                     result.img,
                 )
             }
-            null -> throw IllegalStateException("event type not found")
         }
-    }
+    } else throw IllegalStateException("not initialized")
 
-    private fun extractEventTitle(img: Mat, type: EventType): String {
+    /**
+     * ゲーム画像からイベントタイトルを検出する
+     */
+    fun getEventTitle(img: Mat, type: EventType): Pair<Bitmap, String> {
+        if (!_initialized) {
+            throw IllegalStateException("not initialized")
+        }
         val start = SystemClock.uptimeMillis()
         val target = eventTitleCropper.preProcess(img, type)
-        _textImage.update { target }
         val title = extractText(target)
         Log.d("OCR", "title: $title time: ${SystemClock.uptimeMillis() - start}ms")
-        return title
+        return target to title
     }
 
     private fun extractText(img: Bitmap): String {
@@ -201,6 +159,4 @@ class ImageProcess @Inject constructor(
         val text = ocrApi.utF8Text
         return text.replace(Regex("\\s+"), "")
     }
-
-
 }
