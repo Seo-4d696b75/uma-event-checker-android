@@ -6,7 +6,6 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
@@ -35,7 +34,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val loading = combine(
-        imgProcess.hasInitialized.asFlow(),
+        imgProcess.hasInitialized,
         dataRepository.initialized,
     ) { v1, v2 -> !v1 || !v2 }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)

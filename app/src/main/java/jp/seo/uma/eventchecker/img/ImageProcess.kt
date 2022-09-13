@@ -6,8 +6,6 @@ import android.media.Image
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.googlecode.tesseract.android.TessBaseAPI
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.model.CharaEventOwner
@@ -15,6 +13,9 @@ import jp.seo.uma.eventchecker.model.SupportEventOwner
 import jp.seo.uma.eventchecker.repository.DataRepository
 import jp.seo.uma.eventchecker.repository.SettingRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat
 import java.io.File
@@ -38,21 +39,38 @@ class ImageProcess @Inject constructor(
         const val OCR_TRAINED_DATA = "jpn.traineddata"
     }
 
-    private val _title = MutableLiveData<String?>(null)
-    val title: LiveData<String?> = _title
+    private val _title = MutableStateFlow<String?>(null)
 
-    private val _textImage = MutableLiveData<Bitmap?>(null)
-    val textImage: LiveData<Bitmap?> = _textImage
+    /**
+     * 検出したイベントタイトル文字列
+     */
+    val title: StateFlow<String?> = _title
 
-    private val _eventType = MutableLiveData<EventType?>(null)
-    val currentEventType: LiveData<EventType?> = _eventType
+    private val _textImage = MutableStateFlow<Bitmap?>(null)
 
-    private val _isGameScreen = MutableLiveData<Boolean>(false)
-    val isGameScreen: LiveData<Boolean> = _isGameScreen
+    /**
+     * イベントタイトルを検出した元画像（白黒変換済み）
+     */
+    val textImage: StateFlow<Bitmap?> = _textImage
 
-    private val initialized = MutableLiveData(false)
+    private val _eventType = MutableStateFlow<EventType?>(null)
+
+    /**
+     * 検出されたイベントタイプ
+     */
+    val currentEventType: StateFlow<EventType?> = _eventType
+
+    private val _isGameScreen = MutableStateFlow<Boolean>(false)
+
+    /**
+     * ゲーム画面の検出結果
+     */
+    val isGameScreen: StateFlow<Boolean> = _isGameScreen
+
+    private val initialized = MutableStateFlow(false)
     private var _initialized = false
-    var hasInitialized: LiveData<Boolean> = initialized
+    val hasInitialized: StateFlow<Boolean> = initialized
+
     private lateinit var ocrApi: TessBaseAPI
 
     private lateinit var headerDetector: GameHeaderDetector
@@ -121,23 +139,23 @@ class ImageProcess @Inject constructor(
     fun getEventTitle(img: Mat): String? {
         if (!_initialized) return null
         val isGame = headerDetector.detect(img)
-        _isGameScreen.postValue(isGame)
+        _isGameScreen.update { isGame }
         Log.d("Img", "check is-target $isGame")
         if (isGame) {
             val type = eventTypeDetector.detect(img)
             Log.d("Img", "event type '${type.toString()}'")
             if (type != null) {
                 val title = extractEventTitle(img, type)
-                _title.postValue(title)
-                _eventType.postValue(type)
+                _title.update { title }
+                _eventType.update { type }
                 eventType = type
                 return title
             }
         }
         eventType = null
-        _textImage.postValue(null)
-        _title.postValue(null)
-        _eventType.postValue(null)
+        _textImage.update { null }
+        _title.update { null }
+        _eventType.update { null }
         return null
     }
 
@@ -172,7 +190,7 @@ class ImageProcess @Inject constructor(
     private fun extractEventTitle(img: Mat, type: EventType): String {
         val start = SystemClock.uptimeMillis()
         val target = eventTitleCropper.preProcess(img, type)
-        _textImage.postValue(target)
+        _textImage.update { target }
         val title = extractText(target)
         Log.d("OCR", "title: $title time: ${SystemClock.uptimeMillis() - start}ms")
         return title

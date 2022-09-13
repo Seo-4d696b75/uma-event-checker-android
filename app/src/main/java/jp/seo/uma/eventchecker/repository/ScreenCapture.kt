@@ -10,9 +10,9 @@ import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.os.Handler
 import android.os.HandlerThread
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,9 +33,9 @@ class ScreenCapture @Inject constructor(
 
     var callback: ((Image) -> Unit)? = null
 
-    private val _running = MutableLiveData<Boolean>(false)
+    private val _running = MutableStateFlow<Boolean>(false)
 
-    val running: LiveData<Boolean> = _running
+    val running: StateFlow<Boolean> = _running
 
     private var thread: HandlerThread? = null
 
