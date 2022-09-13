@@ -7,10 +7,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.api.EventDataInfo
 import jp.seo.uma.eventchecker.api.NetworkClient
+import jp.seo.uma.eventchecker.img.EventType
 import jp.seo.uma.eventchecker.img.saveFile
 import jp.seo.uma.eventchecker.model.EventOwners
 import jp.seo.uma.eventchecker.model.GameEvent
 import jp.seo.uma.eventchecker.model.GameEventData
+import jp.seo.uma.eventchecker.model.match
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,7 +45,7 @@ class DataRepository @Inject constructor(
         const val KEY_DATA_VERSION = "data_version"
     }
 
-    private var events: Array<GameEvent> = emptyArray()
+    private var events: List<GameEvent> = emptyList()
     var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
         private set
 
@@ -149,8 +151,9 @@ class DataRepository @Inject constructor(
     /**
      * 指定した閾値以上のscoreのイベントを検索してソートしたリストを返す
      */
-    fun searchForEvent(title: String, threshold: Float): List<SearchResult> {
-        val result = search(title)
+    fun searchForEvent(title: String, threshold: Float, type: EventType): List<SearchResult> {
+        val filtered = events.filter { it.owner.match(type) }
+        val result = search(title, filtered)
         val list = result.filter { it.score > threshold }
         return if (list.isNotEmpty()) {
             val maxScore = list.maxByOrNull { it.score }
@@ -173,7 +176,7 @@ class DataRepository @Inject constructor(
      * 指定した最大の長さで、イベントをscoreでソートしたリストを返す
      */
     fun searchForEvent(title: String, maxSize: Int): List<SearchResult> {
-        val result = search(title)
+        val result = search(title, events)
         return if (maxSize * 5 < result.size) {
             val src = result.toMutableList()
             val dst = mutableListOf<SearchResult>()
@@ -195,12 +198,12 @@ class DataRepository @Inject constructor(
         }
     }
 
-    private fun search(title: String): List<SearchResult> {
+    private fun search(title: String, list: List<GameEvent>): List<SearchResult> {
         val query = title.normalizeForComparison()
         if (query.isEmpty()) return emptyList()
         Log.d("EventData", "normalized query '$query'")
         val algo = LevensteinDistance()
-        return events.map {
+        return list.map {
             val score = algo.getDistance(it.normalizedTitle, query)
             SearchResult(it, score)
         }

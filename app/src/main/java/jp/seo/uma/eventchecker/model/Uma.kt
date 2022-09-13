@@ -15,6 +15,7 @@ import kotlinx.serialization.encoding.Encoder
 sealed interface Uma {
     val id: Int
     val name: String
+    fun toEventOwner(): EventOwner
 }
 
 /**
@@ -43,6 +44,8 @@ data class Partner(
         result = 31 * result + icon.contentHashCode()
         return result
     }
+
+    override fun toEventOwner() = EventOwner.Partner(id, name)
 }
 
 /**
@@ -55,7 +58,9 @@ data class SupportCard(
     val icon: String,
     val type: SupportType,
     val rarity: Rarity,
-) : Uma
+) : Uma {
+    override fun toEventOwner() = EventOwner.SupportCard(id, name)
+}
 
 enum class Rarity {
     R, SR, SSR,

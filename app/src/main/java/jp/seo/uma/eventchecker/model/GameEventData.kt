@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class GameEventData(
     @SerialName("event")
-    val events: Array<GameEvent>,
+    val events: List<GameEvent>,
     @SerialName("owner")
     val owners: EventOwners
 )

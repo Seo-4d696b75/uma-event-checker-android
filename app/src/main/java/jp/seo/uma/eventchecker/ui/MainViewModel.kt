@@ -82,15 +82,7 @@ class MainViewModel @Inject constructor(
         runBlocking is used in order to call suspending style functions in blocking style
          */
         val start = SystemClock.uptimeMillis()
-        val mat = imgProcess.copyToBitmap(img).toMat()
-        val title = imgProcess.getEventTitle(mat)
-        searchRepository.searchForEvent(title)?.let { events ->
-            val ownerName = if (events.size <= 1) null else {
-                // TODO イベントタイプを考慮した検索
-                imgProcess.getEventOwner(mat)?.name
-            }
-            searchRepository.setCurrentEvent(events, ownerName)
-        }
+        searchRepository.searchForEvent(img)
         val now = SystemClock.uptimeMillis()
         val wait = start + settingRepository.minUpdateInterval - now
         if (wait > 0L) {

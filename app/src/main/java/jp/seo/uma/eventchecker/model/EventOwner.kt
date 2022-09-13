@@ -1,5 +1,6 @@
 package jp.seo.uma.eventchecker.model
 
+import jp.seo.uma.eventchecker.img.EventType
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -33,6 +34,12 @@ sealed interface EventOwner {
     data class SupportCard(val id: Int, override val name: String) : EventOwner {
         override val type = "support"
     }
+}
+
+fun EventOwner.match(type: EventType) = when (this) {
+    is EventOwner.Scenario -> type == EventType.Scenario
+    is EventOwner.Partner -> type == EventType.Partner
+    is EventOwner.SupportCard -> type == EventType.SupportCard
 }
 
 class EventOwnerSerializer : KSerializer<EventOwner> {

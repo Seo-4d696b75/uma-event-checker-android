@@ -136,7 +136,7 @@ class ImageProcess @Inject constructor(
      *
      * @param img bitmap of the screen without status-bar nor navigation-bar
      */
-    fun getEventTitle(img: Mat): String? {
+    fun getEventTitle(img: Mat): Pair<EventType, String>? {
         if (!_initialized) return null
         val isGame = headerDetector.detect(img)
         _isGameScreen.update { isGame }
@@ -149,7 +149,7 @@ class ImageProcess @Inject constructor(
                 _title.update { title }
                 _eventType.update { type }
                 eventType = type
-                return title
+                return type to title
             }
         }
         eventType = null
@@ -164,20 +164,20 @@ class ImageProcess @Inject constructor(
      *
      * **Note** Be sure to call after [getEventTitle] returns non null value, or an exception will be thrown
      */
-    suspend fun getEventOwner(img: Mat): EventOwnerDetectResult? {
+    suspend fun getEventOwner(img: Mat): EventOwnerDetectResult {
         return when (eventType) {
-            EventType.Main -> null
-            EventType.Support -> {
+            EventType.Scenario -> throw IllegalStateException("cannot to detect uma of the event owner, because current detected type is Scenario")
+            EventType.SupportCard -> {
                 val result = supportEventOwnerDetector.find(img)
-                EventOwnerDetectResult.Support(
+                EventOwnerDetectResult(
                     result.data,
                     result.score,
                     result.img,
                 )
             }
-            EventType.Chara -> {
+            EventType.Partner -> {
                 val result = charaEventOwnerDetector.find(img)
-                EventOwnerDetectResult.Chara(
+                EventOwnerDetectResult(
                     result.data,
                     result.score,
                     result.img,

@@ -49,7 +49,7 @@ class EventTitleProcess(context: Context) : ScreenCropper(
         val crop = crop(img)
         var gray = Mat()
         Imgproc.cvtColor(crop, gray, Imgproc.COLOR_BGR2GRAY)
-        if (type == EventType.Chara) {
+        if (type == EventType.Partner) {
             val x = (img.width() * samplingX).toInt()
             val rect = Rect(x, 0, samplingWidth, gray.height())
             val sample = Mat(gray, rect)
@@ -138,7 +138,7 @@ class GameHeaderDetector(context: Context) : TemplateMatcher(
 }
 
 enum class EventType {
-    Main, Chara, Support
+    Scenario, Partner, SupportCard
 }
 
 class EventTypeDetector(context: Context) : TemplateMatcher(
@@ -164,9 +164,9 @@ class EventTypeDetector(context: Context) : TemplateMatcher(
 
     fun detect(src: Mat): EventType? {
         val img = preProcess(src)
-        if (match(img, templateChara) > threshold) return EventType.Chara
-        if (match(img, templateSupport) > threshold) return EventType.Support
-        if (match(img, templateMain) > threshold) return EventType.Main
+        if (match(img, templateChara) > threshold) return EventType.Partner
+        if (match(img, templateSupport) > threshold) return EventType.SupportCard
+        if (match(img, templateMain) > threshold) return EventType.Scenario
         return null
     }
 
