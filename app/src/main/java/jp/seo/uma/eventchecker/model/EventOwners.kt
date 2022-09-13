@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class EventOwners(
     @SerialName("chara")
-    val charaEventOwners: Array<CharaEventOwner>,
+    val partners: Array<Partner>,
     @SerialName("support")
-    val supportEventOwners: Array<SupportEventOwner>
+    val supportCards: Array<SupportCard>
 )

@@ -108,8 +108,8 @@ class DataRepository @Inject constructor(
             }
         }
         val icons = mutableListOf<String>()
-        data.owners.supportEventOwners.forEach { icons.add(it.icon) }
-        data.owners.charaEventOwners.forEach { icons.addAll(it.icon) }
+        data.owners.supportCards.forEach { icons.add(it.icon) }
+        data.owners.partners.forEach { icons.addAll(it.icon) }
         val targets = icons.filter { !File(iconDir, it).exists() }
         targets.forEachParallel(
             process = { s ->

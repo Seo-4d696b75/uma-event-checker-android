@@ -5,9 +5,9 @@ import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.model.CharaEventOwner
+import jp.seo.uma.eventchecker.model.Partner
 import jp.seo.uma.eventchecker.model.EventOwners
-import jp.seo.uma.eventchecker.model.SupportEventOwner
+import jp.seo.uma.eventchecker.model.SupportCard
 import jp.seo.uma.eventchecker.repository.mapParallel
 import org.opencv.core.Mat
 import org.opencv.core.Size
@@ -77,10 +77,10 @@ data class TemplateResult<T>(
 fun getCharaEventOwnerDetector(
     context: Context,
     data: EventOwners
-): TemplatesMatcher<CharaEventOwner> {
+): TemplatesMatcher<Partner> {
     val resizedWidth =
         context.resources.getInteger(R.integer.template_event_owner_chara_resized_width)
-    val templates = data.charaEventOwners.map { owner ->
+    val templates = data.partners.map { owner ->
         val icons = owner.icon.map {
             readBitmap(context.filesDir, "icon/${it}")
         }.toList()
@@ -99,10 +99,10 @@ fun getCharaEventOwnerDetector(
 fun getSupportEventOwnerDetector(
     context: Context,
     data: EventOwners
-): TemplatesMatcher<SupportEventOwner> {
+): TemplatesMatcher<SupportCard> {
     val resizedWidth =
         context.resources.getInteger(R.integer.template_event_owner_support_resized_width)
-    val templates = data.supportEventOwners.map { owner ->
+    val templates = data.supportCards.map { owner ->
         val file = "icon/${owner.icon}"
         val icon = readBitmap(context.filesDir, file)
         TemplateHolder(owner, listOf(icon), resizedWidth)

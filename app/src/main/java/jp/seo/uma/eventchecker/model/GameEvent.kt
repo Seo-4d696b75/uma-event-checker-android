@@ -15,12 +15,12 @@ data class GameEvent(
     @SerialName("title")
     val title: String,
     @SerialName("owner")
-    val ownerName: String,
+    val owner: EventOwner,
     @SerialName("title_kana")
     val titleKana: String,
     @SerialName("choices")
     val choices: Array<EventChoice>
-): java.io.Serializable {
+) : java.io.Serializable {
 
     companion object {
         private val pattern = Regex("(?<origin>レース.+?)\\([0-9].+?\\)")
@@ -38,7 +38,7 @@ data class GameEvent(
         other as GameEvent
 
         if (title != other.title) return false
-        if (ownerName != other.ownerName) return false
+        if (owner != other.owner) return false
         if (titleKana != other.titleKana) return false
         if (!choices.contentEquals(other.choices)) return false
 
@@ -47,7 +47,7 @@ data class GameEvent(
 
     override fun hashCode(): Int {
         var result = title.hashCode()
-        result = 31 * result + ownerName.hashCode()
+        result = 31 * result + owner.hashCode()
         result = 31 * result + titleKana.hashCode()
         result = 31 * result + choices.contentHashCode()
         return result
@@ -62,3 +62,4 @@ data class GameEvent(
         }"
     }
 }
+

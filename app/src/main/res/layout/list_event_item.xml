@@ -58,7 +58,7 @@
             android:layout_alignStart="@id/text_event_title"
             android:layout_marginTop="2dp"
             android:maxLines="1"
-            android:text="@{result.event.ownerName}"
+            android:text="@{result.event.owner.name}"
             android:textColor="@color/text_gray"
             android:textSize="@dimen/text_size_overlay"
             android:textStyle="normal"

@@ -41,7 +41,7 @@ class SearchRepository @Inject constructor(
             _currentEvent.update { events[0] }
         } else {
             var event = events[0]
-            val filter = events.filter { it.ownerName == ownerName }
+            val filter = events.filter { it.owner.name == ownerName }
             if (filter.isNotEmpty()) {
                 event = filter[0]
                 Log.d("EventData", "filtered size ${filter.size}, [0]-> ${event.title}")

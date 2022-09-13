@@ -1,8 +1,8 @@
 package jp.seo.uma.eventchecker.img
 
 import android.graphics.Bitmap
-import jp.seo.uma.eventchecker.model.CharaEventOwner
-import jp.seo.uma.eventchecker.model.SupportEventOwner
+import jp.seo.uma.eventchecker.model.Partner
+import jp.seo.uma.eventchecker.model.SupportCard
 
 sealed interface EventOwnerDetectResult {
     val name: String
@@ -10,7 +10,7 @@ sealed interface EventOwnerDetectResult {
     val img: Bitmap
 
     data class Support(
-        val uma: SupportEventOwner,
+        val uma: SupportCard,
         override val score: Double,
         override val img: Bitmap,
     ) : EventOwnerDetectResult {
@@ -18,7 +18,7 @@ sealed interface EventOwnerDetectResult {
     }
 
     data class Chara(
-        val uma: CharaEventOwner,
+        val uma: Partner,
         override val score: Double,
         override val img: Bitmap,
     ) : EventOwnerDetectResult {

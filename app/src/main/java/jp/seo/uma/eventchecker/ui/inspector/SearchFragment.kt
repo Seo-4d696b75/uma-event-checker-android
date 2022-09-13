@@ -75,7 +75,7 @@ class SearchFragment : Fragment() {
     private class SearchResultComparator : DiffUtil.ItemCallback<SearchResult>() {
         override fun areItemsTheSame(oldItem: SearchResult, newItem: SearchResult): Boolean {
             return oldItem.event.title == newItem.event.title
-                    && oldItem.event.ownerName == newItem.event.ownerName
+                    && oldItem.event.owner == newItem.event.owner
                     && oldItem.score == newItem.score
         }
 

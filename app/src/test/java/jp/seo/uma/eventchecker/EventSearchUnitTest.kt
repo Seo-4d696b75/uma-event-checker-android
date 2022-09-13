@@ -1,7 +1,7 @@
 package jp.seo.uma.eventchecker
 
+import jp.seo.uma.eventchecker.api.getDataNetwork
 import jp.seo.uma.eventchecker.model.GameEvent
-import jp.seo.uma.eventchecker.core.getDataNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -19,8 +19,8 @@ import kotlin.random.Random
  */
 class EventSearchUnitTest {
 
-
-    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/main/"
+    // TODO change to main URL
+    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/feature/update-format/"
 
     private lateinit var data: Array<GameEvent>
 

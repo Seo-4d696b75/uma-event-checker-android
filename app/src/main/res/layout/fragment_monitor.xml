@@ -122,7 +122,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:text="@{viewModel.currentEvent == null ? null : viewModel.currentEvent.ownerName}"
+            android:text="@{viewModel.currentEvent == null ? null : viewModel.currentEvent.owner.name}"
             app:layout_constraintStart_toEndOf="@id/text_detected_event_owner_title"
             app:layout_constraintTop_toTopOf="@id/text_detected_event_owner_title"
             tools:text="detected event owner" />

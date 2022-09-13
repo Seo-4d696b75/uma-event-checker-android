@@ -1,9 +1,10 @@
 package jp.seo.uma.eventchecker
 
-import jp.seo.uma.eventchecker.core.DataNetwork
-import jp.seo.uma.eventchecker.core.getDataNetwork
+import jp.seo.uma.eventchecker.api.DataNetwork
+import jp.seo.uma.eventchecker.api.getDataNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.Before
@@ -17,10 +18,12 @@ import java.util.*
  */
 class NetworkUnitTest {
 
-    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/main/"
+    // TODO change to main URL
+    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/feature/update-format/"
 
     lateinit var client: DataNetwork
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Before
     fun setup() {
         client = getDataNetwork(baseURL) {}
@@ -40,7 +43,7 @@ class NetworkUnitTest {
     fun getData() = runBlocking(Dispatchers.IO) {
         val data = client.getData()
         assertThat(data.events.size, Matchers.greaterThan(0))
-        assertThat(data.owners.charaEventOwners.size, Matchers.greaterThan(0))
-        assertThat(data.owners.supportEventOwners.size, Matchers.greaterThan(0))
+        assertThat(data.owners.partners.size, Matchers.greaterThan(0))
+        assertThat(data.owners.supportCards.size, Matchers.greaterThan(0))
     }
 }

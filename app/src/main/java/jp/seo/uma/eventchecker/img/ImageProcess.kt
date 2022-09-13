@@ -8,8 +8,8 @@ import android.util.Log
 import androidx.annotation.MainThread
 import com.googlecode.tesseract.android.TessBaseAPI
 import dagger.hilt.android.qualifiers.ApplicationContext
-import jp.seo.uma.eventchecker.model.CharaEventOwner
-import jp.seo.uma.eventchecker.model.SupportEventOwner
+import jp.seo.uma.eventchecker.model.Partner
+import jp.seo.uma.eventchecker.model.SupportCard
 import jp.seo.uma.eventchecker.repository.DataRepository
 import jp.seo.uma.eventchecker.repository.SettingRepository
 import kotlinx.coroutines.Dispatchers
@@ -76,8 +76,8 @@ class ImageProcess @Inject constructor(
     private lateinit var headerDetector: GameHeaderDetector
     private lateinit var eventTypeDetector: EventTypeDetector
     private lateinit var eventTitleCropper: EventTitleProcess
-    private lateinit var charaEventOwnerDetector: TemplatesMatcher<CharaEventOwner>
-    private lateinit var supportEventOwnerDetector: TemplatesMatcher<SupportEventOwner>
+    private lateinit var charaEventOwnerDetector: TemplatesMatcher<Partner>
+    private lateinit var supportEventOwnerDetector: TemplatesMatcher<SupportCard>
 
     @MainThread
     suspend fun init() {
