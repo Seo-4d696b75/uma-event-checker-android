@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.nullable
 import kotlinx.serialization.descriptors.serialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -17,23 +18,16 @@ import kotlinx.serialization.json.jsonPrimitive
  */
 @Serializable(with = EventOwnerSerializer::class)
 sealed interface EventOwner {
-    val type: String
     val name: String
 
     @Serializable
-    data class Scenario(override val name: String) : EventOwner {
-        override val type = "scenario"
-    }
+    data class Scenario(override val name: String) : EventOwner
 
     @Serializable
-    data class Partner(val id: Int, override val name: String) : EventOwner {
-        override val type = "chara"
-    }
+    data class Partner(val id: Int, override val name: String) : EventOwner
 
     @Serializable
-    data class SupportCard(val id: Int, override val name: String) : EventOwner {
-        override val type = "support"
-    }
+    data class SupportCard(val id: Int, override val name: String) : EventOwner
 }
 
 fun EventOwner.match(type: EventType) = when (this) {
@@ -59,13 +53,24 @@ class EventOwnerSerializer : KSerializer<EventOwner> {
     override fun serialize(encoder: Encoder, value: EventOwner) {
         when (value) {
             is EventOwner.Scenario -> {
-                encoder.encodeSerializableValue(EventOwner.Scenario.serializer(), value)
+                encoder.encodeStructure(descriptor) {
+                    encodeStringElement(descriptor, 0, "scenario")
+                    encodeStringElement(descriptor, 1, value.name)
+                }
             }
             is EventOwner.Partner -> {
-                encoder.encodeSerializableValue(EventOwner.Partner.serializer(), value)
+                encoder.encodeStructure(descriptor) {
+                    encodeStringElement(descriptor, 0, "chara")
+                    encodeStringElement(descriptor, 1, value.name)
+                    encodeIntElement(descriptor, 2, value.id)
+                }
             }
             is EventOwner.SupportCard -> {
-                encoder.encodeSerializableValue(EventOwner.SupportCard.serializer(), value)
+                encoder.encodeStructure(descriptor) {
+                    encodeStringElement(descriptor, 0, "support")
+                    encodeStringElement(descriptor, 1, value.name)
+                    encodeIntElement(descriptor, 2, value.id)
+                }
             }
         }
     }
