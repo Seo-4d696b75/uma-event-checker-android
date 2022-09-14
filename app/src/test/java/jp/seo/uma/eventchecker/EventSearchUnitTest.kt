@@ -20,7 +20,7 @@ import kotlin.random.Random
 class EventSearchUnitTest {
 
     // TODO change to main URL
-    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/feature/update-format/"
+    private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/main/"
 
     private lateinit var data: List<GameEvent>
 
@@ -74,13 +74,13 @@ class EventSearchUnitTest {
         println("parallel > time: ${time / 1000f / 1000000}ms")
     }
 
-    suspend fun <E, R> Array<E>.mapParallel(action: ((E) -> R)): List<R> {
+    private suspend fun <E, R> List<E>.mapParallel(action: ((E) -> R)): List<R> {
         val result = MutableList<R?>(this.size) { null }
         this.mapParallel(0, this.size, result, action)
         return result.map { it!! }
     }
 
-    private suspend fun <E, R> Array<E>.mapParallel(
+    private suspend fun <E, R> List<E>.mapParallel(
         from: Int,
         to: Int,
         result: MutableList<R?>,
