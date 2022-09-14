@@ -42,7 +42,7 @@ class SerializationTest {
             title = "タイトル",
             titleKana = "たいとる",
             owner = EventOwner.Scenario(name = "main"),
-            choices = arrayOf(),
+            choices = listOf(),
         )
         val str = json.encodeToString(event)
         val obj = json.decodeFromString<GameEvent>(str)

@@ -22,7 +22,7 @@ class EventSearchUnitTest {
     // TODO change to main URL
     private val baseURL = "https://raw.githubusercontent.com/Seo-4d696b75/uma-event-data/feature/update-format/"
 
-    private lateinit var data: Array<GameEvent>
+    private lateinit var data: List<GameEvent>
 
     private val seed = 20210819L
 

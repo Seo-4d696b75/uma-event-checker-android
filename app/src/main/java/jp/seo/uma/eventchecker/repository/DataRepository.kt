@@ -46,7 +46,7 @@ class DataRepository @Inject constructor(
     }
 
     private var events: List<GameEvent> = emptyList()
-    var eventOwners: EventOwners = EventOwners(emptyArray(), emptyArray())
+    var eventOwners: EventOwners = EventOwners(emptyList(), emptyList())
         private set
 
     private val _initialized = MutableStateFlow(false)

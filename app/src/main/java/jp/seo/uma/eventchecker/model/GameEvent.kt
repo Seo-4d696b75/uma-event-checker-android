@@ -19,7 +19,7 @@ data class GameEvent(
     @SerialName("title_kana")
     val titleKana: String,
     @SerialName("choices")
-    val choices: Array<EventChoice>
+    val choices: List<EventChoice>
 ) : java.io.Serializable {
 
     companion object {
@@ -31,28 +31,6 @@ data class GameEvent(
         matcher?.let { it.groupValues[0] } ?: title
     }.normalizeForComparison()
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GameEvent
-
-        if (title != other.title) return false
-        if (owner != other.owner) return false
-        if (titleKana != other.titleKana) return false
-        if (!choices.contentEquals(other.choices)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = title.hashCode()
-        result = 31 * result + owner.hashCode()
-        result = 31 * result + titleKana.hashCode()
-        result = 31 * result + choices.contentHashCode()
-        return result
-    }
-
     override fun toString(): String {
         return "$title\n${
             choices.joinToString(
@@ -62,4 +40,3 @@ data class GameEvent(
         }"
     }
 }
-

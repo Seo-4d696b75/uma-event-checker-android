@@ -7,6 +7,7 @@ import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -102,6 +103,7 @@ class MainActivity : AppCompatActivity() {
             .onEach {
                 when (it) {
                     is AppEvent.Error -> {
+                        Log.e("MainActivity", it.e.toString())
                         Toast.makeText(this, it.e.message, Toast.LENGTH_LONG).show()
                         stopService()
                         finish()
