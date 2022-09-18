@@ -105,7 +105,7 @@ class SearchRepository @Inject constructor(
         eventTitle = title
 
         // search for events
-        val th = settingRepository.ocrThread.value
+        val th = settingRepository.ocrThreshold.value
         val events = dataRepository.searchForEvent(title, th, type).map { it.event }
 
         if (events.isEmpty()) {

@@ -42,6 +42,7 @@ class InspectorDialog : DialogFragment() {
                     when (position) {
                         0 -> R.string.inspector_tab_monitor
                         1 -> R.string.inspector_tab_search
+                        2 -> R.string.inspector_tab_setting
                         else -> throw IndexOutOfBoundsException()
                     }
                 )
@@ -63,11 +64,12 @@ class InspectorDialog : DialogFragment() {
 }
 
 class InspectorPageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-    override fun getItemCount() = 2
+    override fun getItemCount() = 3
 
     override fun createFragment(position: Int) = when (position) {
         0 -> MonitorFragment()
         1 -> SearchFragment()
+        2 -> SettingFragment()
         else -> throw IndexOutOfBoundsException()
     }
 }

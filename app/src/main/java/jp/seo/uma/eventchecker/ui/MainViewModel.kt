@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.img.toMat
 import jp.seo.uma.eventchecker.repository.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -84,11 +83,12 @@ class MainViewModel @Inject constructor(
         val start = SystemClock.uptimeMillis()
         searchRepository.searchForEvent(img)
         val now = SystemClock.uptimeMillis()
-        val wait = start + settingRepository.minUpdateInterval - now
+        val minInterval = settingRepository.minUpdateInterval.value
+        val wait = start + minInterval - now
         if (wait > 0L) {
             Log.d(
                 "ViewModel",
-                "update -> wait $wait ms (min-interval ${settingRepository.minUpdateInterval} ms)"
+                "update -> wait $wait ms (min-interval $minInterval ms)"
             )
             delay(wait)
         } else {

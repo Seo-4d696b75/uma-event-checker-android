@@ -21,6 +21,12 @@
     <string name="inspector_dialog_close">閉じる</string>
     <string name="inspector_tab_monitor">監視状態</string>
     <string name="inspector_tab_search">手動検索</string>
+    <string name="inspector_tab_setting">設定</string>
     <string name="event_choice_dialog_title">イベントの選択肢</string>
     <string name="event_choice_dialog_close">閉じる</string>
+    <string name="setting_threshold_title">文字列検索の閾値</string>
+    <string name="setting_threshold_description">OCRで検出したイベントタイトルの類似度検索の閾値を指定します.1に近いほどタイトルの合致度が上がりますがOCRの検出精度が低いと検索結果に出てこない場合があります.</string>
+    <string name="setting_interval_title">検索の時間間隔</string>
+    <string name="setting_interval_description">画像をキャプチャしてイベントを検出・検索する最低の間隔をミリ秒で指定します.間隔を短くすると検索の反応は早くなりますが消費電力が増加します.</string>
+    <string name="setting_interval_format">%1$dms</string>
 </resources>
