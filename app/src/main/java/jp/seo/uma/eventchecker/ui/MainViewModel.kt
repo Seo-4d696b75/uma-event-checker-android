@@ -11,7 +11,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.repository.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -39,17 +41,10 @@ class MainViewModel @Inject constructor(
     val event = appRepository.event
 
     // observe setting values
-    private var minUpdateInterval: Long = 500L
-    private var ocrThreshold: Float = 0.5f
-
-    init {
-        settingRepository.minUpdateInterval
-            .onEach { minUpdateInterval = it }
-            .launchIn(viewModelScope)
-        settingRepository.ocrThreshold
-            .onEach { ocrThreshold = it }
-            .launchIn(viewModelScope)
-    }
+    private val minUpdateInterval =
+        settingRepository.minUpdateInterval.stateIn(viewModelScope, SharingStarted.Lazily)
+    private val ocrThreshold =
+        settingRepository.ocrThreshold.stateIn(viewModelScope, SharingStarted.Lazily)
 
     /**
      * 新しいデータを確認する
@@ -92,9 +87,9 @@ class MainViewModel @Inject constructor(
         runBlocking is used in order to call suspending style functions in blocking style
          */
         val start = SystemClock.uptimeMillis()
-        searchRepository.searchForEvent(img, ocrThreshold)
+        searchRepository.searchForEvent(img, ocrThreshold.value)
         val now = SystemClock.uptimeMillis()
-        val minInterval = minUpdateInterval
+        val minInterval = minUpdateInterval.value
         val wait = start + minInterval - now
         if (wait > 0L) {
             Log.d(
