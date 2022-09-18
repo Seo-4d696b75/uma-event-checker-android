@@ -29,15 +29,21 @@ class SettingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.sliderSettingInterval.setLabelFormatter {
-            val value = it.toLong()
-            requireContext().getString(R.string.setting_interval_format, value)
+        binding.sliderSettingInterval.also {
+            it.value = viewModel.minInterval.value.toFloat()
+            it.setLabelFormatter {
+                val value = it.toLong()
+                requireContext().getString(R.string.setting_interval_format, value)
+            }
+            it.addOnChangeListener { _, value, _ ->
+                viewModel.setMinInterval(value.toLong())
+            }
         }
-        binding.sliderSettingInterval.addOnChangeListener { _, value, _ ->
-            viewModel.setMinInterval(value.toLong())
-        }
-        binding.sliderSettingThreshold.addOnChangeListener { _, value, _ ->
-            viewModel.setOcrThreshold(value)
+        binding.sliderSettingThreshold.also {
+            it.value = viewModel.ocrThreshold.value
+            it.addOnChangeListener { _, value, _ ->
+                viewModel.setOcrThreshold(value)
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -22,31 +23,22 @@
                 android:id="@+id/text_setting_threshold_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/setting_threshold_title"
+                android:text="@{@string/setting_threshold_title(viewModel.ocrThreshold)}"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:text="@{viewModel.ocrThreshold.toString()}"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@id/text_setting_threshold_title"
-                app:layout_constraintTop_toTopOf="@id/text_setting_threshold_title" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/setting_threshold_title" />
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/slider_setting_threshold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
+                android:stepSize="0.1"
                 android:value="@{viewModel.ocrThreshold}"
                 android:valueFrom="0.1"
                 android:valueTo="1.0"
-                android:stepSize="0.1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/text_setting_threshold_title" />
 
@@ -66,21 +58,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="@string/setting_interval_title"
+                android:text="@{@string/setting_interval_title(viewModel.minInterval)}"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_setting_threshold_description" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:text="@{@string/setting_interval_format(viewModel.minInterval)}"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@id/text_setting_interval_title"
-                app:layout_constraintTop_toTopOf="@id/text_setting_interval_title" />
+                app:layout_constraintTop_toBottomOf="@id/text_setting_threshold_description"
+                tools:text="@string/setting_interval_title" />
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/slider_setting_interval"

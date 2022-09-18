@@ -19,7 +19,6 @@ import javax.inject.Singleton
 @Singleton
 class SearchRepository @Inject constructor(
     private val dataRepository: DataRepository,
-    private val settingRepository: SettingRepository,
     private val imageProcess: ImageProcess,
 ) {
 
@@ -82,7 +81,7 @@ class SearchRepository @Inject constructor(
         return null
     }
 
-    suspend fun searchForEvent(img: Image) {
+    suspend fun searchForEvent(img: Image, th: Float) {
         // copy image
         val mat = imageProcess.copyToBitmap(img).toMat()
 
@@ -105,7 +104,6 @@ class SearchRepository @Inject constructor(
         eventTitle = title
 
         // search for events
-        val th = settingRepository.ocrThreshold.value
         val events = dataRepository.searchForEvent(title, th, type).map { it.event }
 
         if (events.isEmpty()) {

@@ -4,11 +4,19 @@ import android.content.Context
 import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.img.readFloat
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,7 +26,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SettingRepository @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     val isDebugDialogShown = MutableStateFlow(false)
@@ -30,19 +38,23 @@ class SettingRepository @Inject constructor(
 
     var screenCaptureScale = context.resources.readFloat(R.dimen.screen_capture_scale)
 
-    val minUpdateInterval = MutableStateFlow(500L)
+    val minUpdateInterval = PreferenceFlow(
+        longPreferencesKey("min_update_interval_ms"),
+        context.dataStore,
+        500L,
+    )
 
-    val ocrThreshold = MutableStateFlow(0.5f)
+    val ocrThreshold = PreferenceFlow(
+        floatPreferencesKey("orc_threshold"),
+        context.dataStore,
+        0.5f,
+    )
 
     init {
         var resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
         statusBarHeight = context.resources.getDimensionPixelSize(resourceId)
         resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
         navigationBarHeight = context.resources.getDimensionPixelSize(resourceId)
-        minUpdateInterval.update {
-            context.resources.getInteger(R.integer.min_update_interval_ms).toLong()
-        }
-        ocrThreshold.update { context.resources.readFloat(R.dimen.ocr_title_threshold) }
     }
 
     fun setMetrics(windowManager: WindowManager) {
@@ -71,4 +83,33 @@ class SettingRepository @Inject constructor(
 
     val capturedContentHeight: Int
         get() = ((screenHeight - statusBarHeight - navigationBarHeight) * screenCaptureScale).toInt()
+}
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("setting")
+
+class PreferenceFlow<T> constructor(
+    private val key: Preferences.Key<T>,
+    private val dataStore: DataStore<Preferences>,
+    private val defaultValue: T,
+) : Flow<T> {
+
+    private val flow = dataStore.data.map {
+        it[key] ?: defaultValue
+    }
+
+    override suspend fun collect(collector: FlowCollector<T>) {
+        flow.collect(collector)
+    }
+
+    private var runningUpdate: Job? = null
+
+    fun update(scope: CoroutineScope, producer: suspend () -> T) = scope.launch {
+        runningUpdate?.cancel()
+        runningUpdate = launch {
+            dataStore.edit { it[key] = producer() }
+        }
+    }
+
+    fun stateIn(scope: CoroutineScope, started: SharingStarted) =
+        flow.stateIn(scope, started, defaultValue)
 }
