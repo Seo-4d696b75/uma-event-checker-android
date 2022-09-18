@@ -1,3 +1,6 @@
 /build
 /src/main/assets/*
 !/src/main/assets/template/
+
+/release.jks
+/gradle.properties

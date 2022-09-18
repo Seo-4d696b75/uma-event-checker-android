@@ -30,3 +30,21 @@ Androidでも「うまぴょい！」育成時のイベントを認識して選�
 ```diff:app/build.gradle
 +    implementation project(path: 'opencv-4.5.2')
 ```
+
+### Build署名の用意
+
+1. keystoreファイル
+
+ファイルは`app/release.jks`で保存します.
+key alias は`key0`を指定します.
+
+2. パスワードの指定
+
+`app/gradle.properties`に記述します.
+
+**このファイルは.gitignoreに追加されています**
+
+```shell
+release_keystore_pwd=${keystore_password}
+release_key_pwd=${key_password}
+```

@@ -10,6 +10,15 @@ android {
     compileSdkVersion 32
     buildToolsVersion "30.0.0"
 
+    signingConfigs {
+        release {
+            storeFile file('release.jks')
+            storePassword release_keystore_pwd
+            keyAlias 'key0'
+            keyPassword release_key_pwd
+        }
+    }
+
     defaultConfig {
         applicationId "jp.seo.uma.eventchecker"
         minSdkVersion 26
@@ -24,6 +33,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
