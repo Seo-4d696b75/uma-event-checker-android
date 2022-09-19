@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nva_main"
+    app:startDestination="@id/fragment_home">
+    <fragment
+        android:id="@+id/fragment_home"
+        android:name="jp.seo.uma.eventchecker.ui.home.HomeFragment"
+        android:label="home" />
+    <dialog
+        android:id="@+id/dialog_data_update"
+        android:name="jp.seo.uma.eventchecker.ui.update.DataUpdateDialog"
+        android:label="update">
+        <argument
+            android:name="runUpdate"
+            app:argType="boolean" />
+        <argument
+            android:name="info"
+            app:argType="jp.seo.uma.eventchecker.api.EventDataInfo" />
+    </dialog>
+    <action
+        android:id="@+id/actionShowDataUpdateDialog"
+        app:destination="@id/dialog_data_update" />
+</navigation>

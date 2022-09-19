@@ -3,14 +3,13 @@ package jp.seo.uma.eventchecker.ui.update
 import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.api.EventDataInfo
 import jp.seo.uma.eventchecker.databinding.DialogUpdateProgressBinding
 import jp.seo.uma.eventchecker.databinding.DialogUpdateRequestBinding
 import kotlinx.coroutines.flow.filterNotNull
@@ -24,38 +23,14 @@ import kotlinx.coroutines.flow.onEach
 @AndroidEntryPoint
 class DataUpdateDialog : DialogFragment() {
 
-    companion object {
-        private const val KEY_ARG_DATA_INFO = "data_info"
-        private const val KEY_ARG_RUN_UPDATE = "run_update"
-
-        fun getRequestDialog(info: EventDataInfo): DataUpdateDialog = DataUpdateDialog().also {
-            it.arguments = bundleOf(
-                KEY_ARG_RUN_UPDATE to false,
-                KEY_ARG_DATA_INFO to info,
-            )
-        }
-
-        fun getProgressDialog(info: EventDataInfo) = DataUpdateDialog().also {
-            it.arguments = bundleOf(
-                KEY_ARG_RUN_UPDATE to true,
-                KEY_ARG_DATA_INFO to info,
-            )
-        }
-    }
-
     private val viewModel: DataUpdateViewModel by viewModels()
 
-    // TODO SafeArgs
-    private val info: EventDataInfo by lazy {
-        requireArguments().getSerializable(KEY_ARG_DATA_INFO) as EventDataInfo
-    }
-
-    private val runUpdate: Boolean by lazy {
-        requireArguments().getBoolean(KEY_ARG_RUN_UPDATE)
-    }
+    private val args: DataUpdateDialogArgs by navArgs()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())
+        val runUpdate = args.runUpdate
+        val info = args.info
         if (!runUpdate) {
             val binding = DialogUpdateRequestBinding.inflate(layoutInflater)
             binding.info = info

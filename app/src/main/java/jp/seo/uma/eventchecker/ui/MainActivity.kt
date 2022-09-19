@@ -12,14 +12,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.databinding.ActivityMainBinding
 import jp.seo.uma.eventchecker.repository.AppEvent
-import jp.seo.uma.eventchecker.ui.update.DataUpdateDialog
+import jp.seo.uma.eventchecker.ui.checker.CheckerService
+import jp.seo.uma.eventchecker.ui.update.DataUpdateDialogDirections
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.opencv.android.BaseLoaderCallback
@@ -92,15 +92,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding =
-            DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
-        binding.viewModel = viewModel
-        binding.lifecycleOwner = this
+        setContentView(R.layout.activity_main)
 
         // handle event
         viewModel.event
             .flowWithLifecycle(lifecycle)
             .onEach {
+                Log.d("Event", it.toString())
                 when (it) {
                     is AppEvent.Error -> {
                         Log.e("MainActivity", it.e.toString())
@@ -109,29 +107,31 @@ class MainActivity : AppCompatActivity() {
                         finish()
                     }
                     is AppEvent.DataUpdateRequest -> {
-                        val dialog = DataUpdateDialog.getRequestDialog(it.info)
-                        dialog.show(supportFragmentManager, "confirm-update-data")
+                        findNavController(R.id.nav_host_fragment).navigate(
+                            DataUpdateDialogDirections.actionShowDataUpdateDialog(false, it.info)
+                        )
                     }
                     is AppEvent.DataUpdateConfirm -> {
                         if (it.confirm) {
                             // run update via network
-                            val dialog = DataUpdateDialog.getProgressDialog(it.info)
-                            dialog.show(supportFragmentManager, "run-update-data")
+                            findNavController(R.id.nav_host_fragment).navigateWhenDialogClosed(
+                                DataUpdateDialogDirections.actionShowDataUpdateDialog(
+                                    true,
+                                    it.info
+                                ),
+                                R.id.dialog_data_update,
+                                lifecycle,
+                            )
                         } else {
                             // load local storage
                             viewModel.loadData()
                         }
                     }
+                    is AppEvent.StartChecker -> startService()
+                    is AppEvent.StopChecker -> stopService()
                 }
             }
             .launchIn(lifecycleScope)
-
-        binding.buttonStart.setOnClickListener {
-            when (viewModel.runningCapture.value) {
-                true -> stopService()
-                else -> startService()
-            }
-        }
 
         // check OpenCV and init ViewModel
         if (OpenCVLoader.initDebug()) {
