@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.ui
+package jp.seo.uma.eventchecker.ui.checker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,8 +15,10 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.repository.*
+import jp.seo.uma.eventchecker.repository.ScreenCapture
+import jp.seo.uma.eventchecker.repository.SearchRepository
+import jp.seo.uma.eventchecker.repository.SettingRepository
+import jp.seo.uma.eventchecker.ui.ShakeDetector
 import jp.seo.uma.eventchecker.ui.inspector.InspectorDialogLaunchActivity
 import jp.seo.uma.eventchecker.ui.overlay.createOverlayView
 import javax.inject.Inject
@@ -41,16 +43,7 @@ class CheckerService : LifecycleService() {
     }
 
     @Inject
-    lateinit var appRepository: AppRepository
-
-    @Inject
     lateinit var capture: ScreenCapture
-
-    @Inject
-    lateinit var dataRepository: DataRepository
-
-    @Inject
-    lateinit var imageProcess: ImageProcess
 
     @Inject
     lateinit var settingRepository: SettingRepository
@@ -63,15 +56,8 @@ class CheckerService : LifecycleService() {
 
     private var view: View? = null
 
-    private val viewModel: MainViewModel by lazy {
-        MainViewModel(
-            appRepository,
-            dataRepository,
-            imageProcess,
-            settingRepository,
-            capture,
-            searchRepository,
-        )
+    private val viewModel: CheckerViewModel by lazy {
+        CheckerViewModel(capture, settingRepository, searchRepository)
     }
 
     private val shakeDetector = ShakeDetector()

@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.UmaEventChecker">
         <service
-            android:name=".ui.CheckerService"
+            android:name=".ui.checker.CheckerService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
         <activity
