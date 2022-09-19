@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_inspector"
+    app:startDestination="@id/dialog_inspector">
+    <dialog
+        android:id="@+id/dialog_inspector"
+        android:name="jp.seo.uma.eventchecker.ui.inspector.InspectorDialog"
+        android:label="inspector" />
+    <dialog
+        android:id="@+id/dialog_event_choice"
+        android:name="jp.seo.uma.eventchecker.ui.inspector.EventChoiceDialog"
+        android:label="event_choice">
+        <argument
+            android:name="event"
+            app:argType="jp.seo.uma.eventchecker.model.GameEvent" />
+    </dialog>
+    <action
+        android:id="@+id/actionShowEventChoiceDialog"
+        app:destination="@id/dialog_event_choice" />
+</navigation>

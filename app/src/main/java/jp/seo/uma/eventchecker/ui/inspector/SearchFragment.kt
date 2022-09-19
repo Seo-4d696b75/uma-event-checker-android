@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.*
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.databinding.FragmentSearchBinding
@@ -47,8 +48,8 @@ class SearchFragment : Fragment() {
         val adapter = GamaEventAdapter(context).apply {
             onItemClickListener = {
                 Log.d("Search", "onItemClicked $it")
-                val dialog = EventChoiceDialog.getInstance(it.event)
-                dialog.show(childFragmentManager, "event-choice")
+                val action = EventChoiceDialogDirections.actionShowEventChoiceDialog(it.event)
+                findNavController().navigate(action)
             }
         }
         binding.listEventSearch.also {
