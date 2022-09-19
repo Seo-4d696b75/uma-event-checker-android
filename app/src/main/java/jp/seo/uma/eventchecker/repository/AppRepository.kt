@@ -26,10 +26,18 @@ class AppRepository @Inject constructor() {
     suspend fun emitError(exception: Exception) {
         _event.emit(AppEvent.Error(exception))
     }
+
+    suspend fun startChecker(start: Boolean) {
+        _event.emit(
+            if (start) AppEvent.StartChecker else AppEvent.StopChecker
+        )
+    }
 }
 
 sealed interface AppEvent {
     data class DataUpdateRequest(val info: EventDataInfo) : AppEvent
     data class DataUpdateConfirm(val info: EventDataInfo, val confirm: Boolean) : AppEvent
     data class Error(val e: Exception) : AppEvent
+    object StartChecker : AppEvent
+    object StopChecker : AppEvent
 }
