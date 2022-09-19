@@ -7,12 +7,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.EventType
 import jp.seo.uma.eventchecker.model.GameEvent
 import jp.seo.uma.eventchecker.repository.SearchRepository
-import jp.seo.uma.eventchecker.repository.SettingRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class MonitorViewModel @Inject constructor(
-    private val setting: SettingRepository,
     private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
@@ -45,8 +43,4 @@ class MonitorViewModel @Inject constructor(
 
     val currentEvent
         get() = _currentEvent
-
-    fun onDismiss() {
-        setting.isDebugDialogShown.value = false
-    }
 }

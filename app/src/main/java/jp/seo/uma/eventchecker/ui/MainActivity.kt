@@ -107,14 +107,14 @@ class MainActivity : AppCompatActivity() {
                         finish()
                     }
                     is AppEvent.DataUpdateRequest -> {
-                        findNavController(R.id.nav_host_fragment).navigate(
+                        findNavController(R.id.nav_host_main).navigate(
                             DataUpdateDialogDirections.actionShowDataUpdateDialog(false, it.info)
                         )
                     }
                     is AppEvent.DataUpdateConfirm -> {
                         if (it.confirm) {
                             // run update via network
-                            findNavController(R.id.nav_host_fragment).navigateWhenDialogClosed(
+                            findNavController(R.id.nav_host_main).navigateWhenDialogClosed(
                                 DataUpdateDialogDirections.actionShowDataUpdateDialog(
                                     true,
                                     it.info
