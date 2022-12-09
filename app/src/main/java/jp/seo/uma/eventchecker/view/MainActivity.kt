@@ -32,8 +32,6 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    private lateinit var projectionManager: MediaProjectionManager
-
     private val openCvCallback by lazy {
         object : BaseLoaderCallback(applicationContext) {
             override fun onManagerConnected(status: Int) {
@@ -60,9 +58,9 @@ class MainActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK && data != null) {
             // all ready. start service
             val intent = Intent(this, CheckerService::class.java)
+                .putExtra(CheckerService.KEY_REQUEST, CheckerService.REQUEST_START_MEDIA_PROJECTION)
+                .putExtra(CheckerService.KEY_MEDIA_PROJECTION_DATA, data)
             startForegroundService(intent)
-            val projection = projectionManager.getMediaProjection(resultCode, data)
-            viewModel.startCapture(projection)
         } else {
             Toast.makeText(this, "fail to get capture", Toast.LENGTH_SHORT).show()
             finish()
@@ -126,7 +124,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // init MediaProjection API
-        projectionManager =
+        val projectionManager =
             getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjectionPermissionLauncher.launch(projectionManager.createScreenCaptureIntent())
         viewModel.setMetrics(windowManager)

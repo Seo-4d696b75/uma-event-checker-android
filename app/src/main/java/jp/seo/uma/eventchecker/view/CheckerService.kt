@@ -1,11 +1,11 @@
 package jp.seo.uma.eventchecker.view
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.media.projection.MediaProjectionManager
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -40,6 +40,8 @@ class CheckerService : LifecycleService() {
 
         const val KEY_REQUEST = "request"
         const val REQUEST_EXIT_SERVICE = "exit"
+        const val REQUEST_START_MEDIA_PROJECTION = "start_media_projection"
+        const val KEY_MEDIA_PROJECTION_DATA = "media_projection_data"
     }
 
     @Inject
@@ -67,6 +69,16 @@ class CheckerService : LifecycleService() {
             if (it.hasExtra(KEY_REQUEST)) {
                 when (it.getStringExtra(KEY_REQUEST)) {
                     REQUEST_EXIT_SERVICE -> stopSelf()
+                    REQUEST_START_MEDIA_PROJECTION -> {
+                        Log.d("onStartCommand", "start media projection")
+                        val projectionManager =
+                            getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                        val data = it.getParcelableExtra<Intent>(KEY_MEDIA_PROJECTION_DATA)
+                            ?: throw IllegalArgumentException()
+                        val projection =
+                            projectionManager.getMediaProjection(Activity.RESULT_OK, data)
+                        viewModel.startCapture(projection)
+                    }
                 }
             }
         }
@@ -135,6 +147,7 @@ class CheckerService : LifecycleService() {
         manager.addView(binding.root, layoutParam)
 
 
+        Log.d("Service", "created")
     }
 
     override fun onDestroy() {
