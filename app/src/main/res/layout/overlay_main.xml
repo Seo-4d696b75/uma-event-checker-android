@@ -9,7 +9,7 @@
 
         <variable
             name="viewModel"
-            type="jp.seo.uma.eventchecker.viewmodel.MainViewModel" />
+            type="jp.seo.uma.eventchecker.ui.checker.CheckerViewModel" />
     </data>
 
     <RelativeLayout

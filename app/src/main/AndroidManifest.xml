@@ -14,11 +14,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.UmaEventChecker">
         <service
-            android:name=".view.CheckerService"
+            android:name=".ui.checker.CheckerService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
         <activity
-            android:name=".view.MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
