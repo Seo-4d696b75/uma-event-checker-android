@@ -2,11 +2,12 @@ package jp.seo.uma.eventchecker.model
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.readFloat
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,34 +32,24 @@ class DataRepository @Inject constructor() {
 
     private lateinit var events: Array<GameEvent>
     private var ocrThreshold: Float = 0.5f
-    private val _currentEvent = MutableLiveData<GameEvent?>(null)
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val _initialized = MutableStateFlow(false)
+    val initialized = _initialized.asStateFlow()
 
     suspend fun init(context: Context) = withContext(Dispatchers.IO) {
+        if (_initialized.value) return@withContext
         val manager = context.resources.assets
         manager.open(DATA_FILE).use { reader ->
             val str = reader.readBytes().toString(Charsets.UTF_8)
-            events = Json { ignoreUnknownKeys = true }.decodeFromString(str)
+            events = json.decodeFromString(str)
         }
         ocrThreshold = context.resources.readFloat(R.dimen.ocr_title_threshold)
+        _initialized.update { true }
     }
 
-    private var eventTitle: String? = null
-
-    fun setEventTitle(value: String?) {
-        if (eventTitle != value) {
-            if (value == null) {
-                _currentEvent.postValue(null)
-            } else {
-                val event = searchEventTitle(value)
-                _currentEvent.postValue(event)
-            }
-        }
-        eventTitle = value
-    }
-
-    val currentEvent: LiveData<GameEvent?> = _currentEvent
-
-    private fun searchEventTitle(title: String): GameEvent? {
+    fun searchEvent(title: String): GameEvent? {
         val algo = LevensteinDistance()
         val score = events.map { event -> algo.getDistance(event.title, title) }
         return score.maxOrNull()?.let { maxScore ->

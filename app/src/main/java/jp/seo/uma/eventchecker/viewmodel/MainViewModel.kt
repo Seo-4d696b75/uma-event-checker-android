@@ -7,13 +7,19 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.MainThread
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.model.DataRepository
+import jp.seo.uma.eventchecker.model.SearchRepository
 import jp.seo.uma.eventchecker.model.SettingRepository
-import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -24,7 +30,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: DataRepository,
+    private val search: SearchRepository,
+    private val dataRepository: DataRepository,
     private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
     private val capture: ScreenCapture,
@@ -50,16 +57,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    val loading: LiveData<Boolean> = imgProcess.hasInitialized.map { !it }
+    val loading = combine(
+        dataRepository.initialized,
+        imgProcess.initialized,
+    ) { v1, v2 -> !v1 || !v2 }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(),
+            true,
+        )
 
-    val ocrText = imgProcess.title
-
-    val currentEvent = repository.currentEvent
+    val currentEvent = search.currentEvent
 
     @MainThread
     fun init(context: Context) = viewModelScope.launch {
         imgProcess.init(context)
-        repository.init(context)
+        dataRepository.init(context)
     }
 
     fun setMetrics(manager: WindowManager) = setting.setMetrics(manager)
@@ -75,9 +88,7 @@ class MainViewModel @Inject constructor(
         runBlocking is used in order to call suspending style functions in blocking style
          */
         val start = SystemClock.uptimeMillis()
-        val mat = imgProcess.copyToBitmap(img).toMat()
-        val title = imgProcess.getEventTitle(mat)
-        repository.setEventTitle(title)
+        search.update(img)
         val wait = start + setting.minUpdateInterval - SystemClock.uptimeMillis()
         if (wait > 0L) {
             Log.d("update", "wait $wait ms")
