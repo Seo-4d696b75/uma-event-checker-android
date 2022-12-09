@@ -96,8 +96,12 @@ class CheckerService : LifecycleService() {
 
         val exit = Intent(applicationContext, CheckerService::class.java)
             .putExtra(KEY_REQUEST, REQUEST_EXIT_SERVICE)
-        val pending =
-            PendingIntent.getService(applicationContext, 1, exit, PendingIntent.FLAG_ONE_SHOT)
+        val pending = PendingIntent.getService(
+            applicationContext,
+            1,
+            exit,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE,
+        )
         val notification =
             NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_custom_foreground)
