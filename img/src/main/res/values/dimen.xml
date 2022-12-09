@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- キャプチャした画像からのサンプリング位置は画面幅に対し正規化 -->
+    <item name="template_game_header_sampling_x" format="float" type="dimen">0.0</item>
+    <item name="template_game_header_sampling_width" format="float" type="dimen">0.1619</item>
+    <item name="template_game_header_sampling_y" format="float" type="dimen">0.0</item>
+    <item name="template_game_header_sampling_height" format="float" type="dimen">0.057143</item>
+    <item name="template_game_header_origin" format="float" type="dimen">525</item>
+    <item name="template_game_header_threshold" format="float" type="dimen">0.7</item>
+
+    <item name="template_event_type_sampling_x" format="float" type="dimen">0.1557</item>
+    <item name="template_event_type_sampling_width" format="float" type="dimen">0.3640</item>
+    <item name="template_event_type_sampling_y" format="float" type="dimen">0.2950</item>
+    <item name="template_event_type_sampling_height" format="float" type="dimen">0.0311</item>
+    <item name="template_event_type_origin" format="float" type="dimen">546</item>
+    <item name="template_event_type_threshold" format="float" type="dimen">0.7</item>
+
+    <item name="ocr_title_sampling_x" format="float" type="dimen">0.16</item>
+    <item name="ocr_title_sampling_width" format="float" type="dimen">0.55</item>
+    <item name="ocr_title_sampling_y" format="float" type="dimen">0.33</item>
+    <item name="ocr_title_sampling_height" format="float" type="dimen">0.065</item>
+</resources>

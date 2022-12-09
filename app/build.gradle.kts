@@ -54,9 +54,6 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // OCR library
-    implementation("com.github.adaptech-cz:tesseract4android:2.1.1")
-
     implementation("androidx.activity:activity-ktx:1.6.1")
     implementation("androidx.fragment:fragment-ktx:1.5.5")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutine}")
@@ -70,8 +67,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
     kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
 
-    // Image processing
-    implementation(project("path" to ":opencv-4.5.2"))
+    // img module
+    implementation(project("path" to ":img"))
 
     // String comparison
     implementation("org.apache.lucene:lucene-core:8.9.0")

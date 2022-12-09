@@ -2,7 +2,7 @@ package jp.seo.uma.eventchecker.img.crop
 
 import android.content.Context
 import android.graphics.Bitmap
-import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.img.R
 import jp.seo.uma.eventchecker.img.readFloat
 import jp.seo.uma.eventchecker.img.toBitmap
 import org.opencv.core.Mat

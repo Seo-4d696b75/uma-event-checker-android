@@ -19,9 +19,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.databinding.ActivityMainBinding
 import jp.seo.uma.eventchecker.ui.checker.CheckerService
-import org.opencv.android.BaseLoaderCallback
-import org.opencv.android.LoaderCallbackInterface
-import org.opencv.android.OpenCVLoader
 
 /**
  * ユーザとのインタラクションが必要な処理
@@ -34,24 +31,6 @@ import org.opencv.android.OpenCVLoader
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
-
-    private val openCvCallback by lazy {
-        object : BaseLoaderCallback(applicationContext) {
-            override fun onManagerConnected(status: Int) {
-                if (status == LoaderCallbackInterface.SUCCESS) {
-                    // init img process
-                    viewModel.init(applicationContext)
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        "fail to get OpenCV library",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    finish()
-                }
-            }
-        }
-    }
 
     private val mediaProjectionPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -116,13 +95,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // check OpenCV and init ViewModel
-        if (OpenCVLoader.initDebug()) {
-            openCvCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
-        } else {
-            OpenCVLoader.initAsync("4.5.2", applicationContext, openCvCallback)
-        }
-
+        // load data & OpenCV
+        viewModel.init(this)
     }
 
     private fun startService() {

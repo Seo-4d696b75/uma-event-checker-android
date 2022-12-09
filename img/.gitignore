@@ -1,0 +1,4 @@
+/build
+
+# for tesseract
+/src/main/assets/*.traineddata

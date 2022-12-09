@@ -1,7 +1,7 @@
 package jp.seo.uma.eventchecker.img.detect
 
 import android.content.Context
-import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.img.R
 import jp.seo.uma.eventchecker.img.getBitmap
 import jp.seo.uma.eventchecker.img.readFloat
 import jp.seo.uma.eventchecker.img.toMat
