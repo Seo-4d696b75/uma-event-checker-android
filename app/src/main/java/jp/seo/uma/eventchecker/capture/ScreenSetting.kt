@@ -1,28 +1,30 @@
-package jp.seo.uma.eventchecker.data.repository
+package jp.seo.uma.eventchecker.capture
 
 import android.content.Context
 import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.data.readFloat
+import jp.seo.uma.eventchecker.data.repository.SettingRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * @author Seo-4d696b75
- * @version 2021/07/08.
- */
-class SettingRepository(
-    context: Context
-) {
+@Singleton
+class ScreenSetting @Inject constructor(
+    @ApplicationContext context: Context
+) : SettingRepository {
 
-    var screenWidth: Int = 0
-    var screenHeight: Int = 0
-    var statusBarHeight: Int = 0
-    var navigationBarHeight: Int = 0
+    private var screenWidth: Int = 0
+    private var screenHeight: Int = 0
+    private var statusBarHeight: Int = 0
+    private var navigationBarHeight: Int = 0
 
-    var screenCaptureScale = context.resources.readFloat(R.dimen.screen_capture_scale)
+    private var screenCaptureScale = context.resources.readFloat(R.dimen.screen_capture_scale)
 
-    var minUpdateInterval = context.resources.getInteger(R.integer.min_update_interval_ms).toLong()
+    override val minUpdateInterval =
+        context.resources.getInteger(R.integer.min_update_interval_ms).toLong()
 
     init {
         var resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
@@ -31,7 +33,7 @@ class SettingRepository(
         navigationBarHeight = context.resources.getDimensionPixelSize(resourceId)
     }
 
-    fun setMetrics(windowManager: WindowManager) {
+    override fun setMetrics(windowManager: WindowManager) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val metric = windowManager.currentWindowMetrics
@@ -46,15 +48,15 @@ class SettingRepository(
 
     }
 
-    val capturedScreenWidth: Int
+    override val capturedScreenWidth: Int
         get() = (screenWidth * screenCaptureScale).toInt()
 
-    val capturedScreenHeight: Int
+    override val capturedScreenHeight: Int
         get() = (screenHeight * screenCaptureScale).toInt()
 
-    val capturedStatusBarHeight: Int
+    override val capturedStatusBarHeight: Int
         get() = (statusBarHeight * screenCaptureScale).toInt()
 
-    val capturedContentHeight: Int
+    override val capturedContentHeight: Int
         get() = ((screenHeight - statusBarHeight - navigationBarHeight) * screenCaptureScale).toInt()
 }

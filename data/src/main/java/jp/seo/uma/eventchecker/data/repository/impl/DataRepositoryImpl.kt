@@ -2,7 +2,7 @@ package jp.seo.uma.eventchecker.data.repository.impl
 
 import android.content.Context
 import android.util.Log
-import jp.seo.uma.eventchecker.R
+import jp.seo.uma.eventchecker.data.R
 import jp.seo.uma.eventchecker.data.model.GameEvent
 import jp.seo.uma.eventchecker.data.readFloat
 import jp.seo.uma.eventchecker.data.repository.DataRepository

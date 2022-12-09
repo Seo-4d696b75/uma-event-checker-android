@@ -1,4 +1,4 @@
-package jp.seo.uma.eventchecker.data.repository.impl
+package jp.seo.uma.eventchecker.capture
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -24,7 +24,7 @@ import javax.inject.Singleton
  * @version 2021/07/03.
  */
 @Singleton
-class ScreenCaptureImpl @Inject constructor(
+class ScreenCapture @Inject constructor(
     @ApplicationContext
     private val context: Context,
     private val repository: SettingRepository

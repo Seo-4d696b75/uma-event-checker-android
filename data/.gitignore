@@ -1,0 +1,4 @@
+/build
+
+# イベントデータは各自用意してね
+/src/main/assets/*.json

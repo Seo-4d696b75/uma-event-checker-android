@@ -2,8 +2,6 @@
 <resources>
     <item type="dimen" format="float" name="screen_capture_scale">0.5</item>
 
-    <item type="dimen" format="float" name="ocr_title_threshold">0.5</item>
-
     <dimen name="text_size_overlay">12sp</dimen>
     <dimen name="text_size_overlay_large">14sp</dimen>
     <dimen name="overlay_margin_top">180dp</dimen>

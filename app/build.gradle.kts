@@ -3,7 +3,6 @@ plugins {
     id("kotlin-android")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
-    kotlin("plugin.serialization") version Versions.kotlin
 }
 
 android {
@@ -67,15 +66,11 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
     kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
 
+    // data module
+    implementation(project("path" to ":data"))
+
     // img module
     implementation(project("path" to ":img"))
-
-    // String comparison
-    implementation("org.apache.lucene:lucene-core:8.9.0")
-    implementation("org.apache.lucene:lucene-spellchecker:3.6.2")
-
-    // Json
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
     testImplementation("junit:junit:4.+")
 
