@@ -5,7 +5,9 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.MainThread
 import com.googlecode.tesseract.android.TessBaseAPI
-import jp.seo.uma.eventchecker.copyAssetsToFiles
+import jp.seo.uma.eventchecker.img.crop.EventTitleCropper
+import jp.seo.uma.eventchecker.img.detect.EventTypeDetector
+import jp.seo.uma.eventchecker.img.detect.GameHeaderDetector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +34,7 @@ class ImageProcess {
 
     private lateinit var headerDetector: GameHeaderDetector
     private lateinit var eventTypeDetector: EventTypeDetector
-    private lateinit var eventTitleCropper: EventTitleProcess
+    private lateinit var eventTitleCropper: EventTitleCropper
 
     @MainThread
     suspend fun init(context: Context) {
@@ -40,7 +42,7 @@ class ImageProcess {
         loadData(context)
         headerDetector = GameHeaderDetector(context)
         eventTypeDetector = EventTypeDetector(context)
-        eventTitleCropper = EventTitleProcess(context)
+        eventTitleCropper = EventTitleCropper(context)
         _initialized.update { true }
     }
 
@@ -53,7 +55,7 @@ class ImageProcess {
         }
         val file = File(dir, OCR_TRAINED_DATA)
         if (!file.exists()) {
-            copyAssetsToFiles(context, OCR_TRAINED_DATA, file)
+            context.copyAssetsToFiles(OCR_TRAINED_DATA, file)
         }
         ocrApi = TessBaseAPI()
         if (!ocrApi.init(context.filesDir.toString(), "jpn")) {
@@ -61,7 +63,8 @@ class ImageProcess {
         }
     }
 
-    fun getEventTitle(img: Mat): String? {
+    fun getEventTitle(src: Bitmap): String? {
+        val img = src.toMat()
         if (!_initialized.value) return null
         val isGame = headerDetector.detect(img)
         Log.d("update", "target $isGame")

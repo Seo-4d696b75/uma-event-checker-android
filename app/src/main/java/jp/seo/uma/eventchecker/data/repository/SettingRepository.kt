@@ -5,7 +5,7 @@ import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.readFloat
+import jp.seo.uma.eventchecker.data.readFloat
 
 /**
  * @author Seo-4d696b75

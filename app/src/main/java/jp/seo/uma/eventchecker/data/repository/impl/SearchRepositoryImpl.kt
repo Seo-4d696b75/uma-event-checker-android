@@ -7,7 +7,6 @@ import jp.seo.uma.eventchecker.data.repository.DataRepository
 import jp.seo.uma.eventchecker.data.repository.SearchRepository
 import jp.seo.uma.eventchecker.data.repository.SettingRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,7 +28,7 @@ class SearchRepositoryImpl @Inject constructor(
 
     override fun update(img: Image) {
         val bitmap = img.cropScreenContent()
-        val title = detector.getEventTitle(bitmap.toMat())
+        val title = detector.getEventTitle(bitmap)
         if (title != _currentTitle.value) {
             _currentTitle.update { title }
             val event = title?.let {
