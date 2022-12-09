@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.media.projection.MediaProjectionManager
+import android.os.Build
+import android.os.Parcelable
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -67,7 +69,7 @@ class CheckerService : LifecycleService() {
                         Log.d("onStartCommand", "start media projection")
                         val projectionManager =
                             getSystemService(Service.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-                        val data = it.getParcelableExtra<Intent>(KEY_MEDIA_PROJECTION_DATA)
+                        val data = it.getParcelable<Intent>(KEY_MEDIA_PROJECTION_DATA)
                             ?: throw IllegalArgumentException()
                         val projection =
                             projectionManager.getMediaProjection(Activity.RESULT_OK, data)
@@ -155,3 +157,11 @@ class CheckerService : LifecycleService() {
         }
     }
 }
+
+inline fun <reified T : Parcelable> Intent.getParcelable(key: String): T? =
+    if (Build.VERSION.SDK_INT >= 33) {
+        getParcelableExtra(key, T::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra<T>(key)
+    }
