@@ -1,7 +1,8 @@
-package jp.seo.uma.eventchecker.model
+package jp.seo.uma.eventchecker.data
 
 import android.graphics.Bitmap
 import android.media.Image
+import jp.seo.uma.eventchecker.data.model.GameEvent
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.flow.MutableStateFlow

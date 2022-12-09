@@ -13,7 +13,7 @@ import android.os.HandlerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
-import jp.seo.uma.eventchecker.model.SettingRepository
+import jp.seo.uma.eventchecker.data.SettingRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

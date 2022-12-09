@@ -8,14 +8,12 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.seo.uma.eventchecker.data.DataRepository
+import jp.seo.uma.eventchecker.data.SearchRepository
+import jp.seo.uma.eventchecker.data.SettingRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
-import jp.seo.uma.eventchecker.model.DataRepository
-import jp.seo.uma.eventchecker.model.SearchRepository
-import jp.seo.uma.eventchecker.model.SettingRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -36,26 +34,6 @@ class MainViewModel @Inject constructor(
     private val setting: SettingRepository,
     private val capture: ScreenCapture,
 ) : ViewModel() {
-
-    companion object {
-
-        fun getInstance(
-            store: ViewModelStore,
-            repository: DataRepository,
-            process: ImageProcess,
-            setting: SettingRepository,
-            capture: ScreenCapture
-        ): MainViewModel {
-            val factory = object : ViewModelProvider.Factory {
-                @SuppressWarnings("unchecked_cast")
-                override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val obj = MainViewModel(repository, process, setting, capture)
-                    return obj as T
-                }
-            }
-            return ViewModelProvider({ store }, factory).get(MainViewModel::class.java)
-        }
-    }
 
     val loading = combine(
         dataRepository.initialized,
