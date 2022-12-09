@@ -1,22 +1,18 @@
-package jp.seo.uma.eventchecker.data
+package jp.seo.uma.eventchecker.data.repository
 
 import android.content.Context
 import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jp.seo.uma.eventchecker.R
 import jp.seo.uma.eventchecker.readFloat
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * @author Seo-4d696b75
  * @version 2021/07/08.
  */
-@Singleton
-class SettingRepository @Inject constructor(
-    @ApplicationContext context: Context
+class SettingRepository(
+    context: Context
 ) {
 
     var screenWidth: Int = 0

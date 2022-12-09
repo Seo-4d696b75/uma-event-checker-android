@@ -10,9 +10,10 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.seo.uma.eventchecker.data.DataRepository
-import jp.seo.uma.eventchecker.data.SearchRepository
-import jp.seo.uma.eventchecker.data.SettingRepository
+import jp.seo.uma.eventchecker.data.repository.DataRepository
+import jp.seo.uma.eventchecker.data.repository.ScreenRepository
+import jp.seo.uma.eventchecker.data.repository.SearchRepository
+import jp.seo.uma.eventchecker.data.repository.SettingRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +33,7 @@ class MainViewModel @Inject constructor(
     private val dataRepository: DataRepository,
     private val imgProcess: ImageProcess,
     private val setting: SettingRepository,
-    private val capture: ScreenCapture,
+    private val capture: ScreenRepository,
 ) : ViewModel() {
 
     val loading = combine(
@@ -80,8 +81,6 @@ class MainViewModel @Inject constructor(
 
     val runningCapture = capture.running
 
-    fun setScreenCallback(callback: ((Image) -> Unit)) {
-        capture.callback = callback
-    }
+    fun setScreenCallback(callback: ((Image) -> Unit)) = capture.setCallback(callback)
 
 }

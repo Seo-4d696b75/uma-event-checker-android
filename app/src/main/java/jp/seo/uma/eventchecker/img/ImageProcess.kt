@@ -13,15 +13,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.opencv.core.Mat
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * @author Seo-4d696b75
  * @version 2021/07/06.
  */
-@Singleton
-class ImageProcess @Inject constructor() {
+class ImageProcess {
 
     companion object {
         const val OCR_DATA_DIR = "tessdata"

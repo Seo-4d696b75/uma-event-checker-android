@@ -1,8 +1,11 @@
-package jp.seo.uma.eventchecker.data
+package jp.seo.uma.eventchecker.data.repository.impl
 
 import android.graphics.Bitmap
 import android.media.Image
 import jp.seo.uma.eventchecker.data.model.GameEvent
+import jp.seo.uma.eventchecker.data.repository.DataRepository
+import jp.seo.uma.eventchecker.data.repository.SearchRepository
+import jp.seo.uma.eventchecker.data.repository.SettingRepository
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.toMat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,19 +15,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SearchRepository @Inject constructor(
+class SearchRepositoryImpl @Inject constructor(
     private val detector: ImageProcess,
     private val setting: SettingRepository,
     private val dataRepository: DataRepository,
-) {
+) : SearchRepository {
 
     private val _currentTitle = MutableStateFlow<String?>(null)
-    val currentTitle = _currentTitle.asStateFlow()
+    override val currentTitle = _currentTitle.asStateFlow()
 
     private val _currentEvent = MutableStateFlow<GameEvent?>(null)
-    val currentEvent = _currentEvent.asStateFlow()
+    override val currentEvent = _currentEvent.asStateFlow()
 
-    fun update(img: Image) {
+    override fun update(img: Image) {
         val bitmap = img.cropScreenContent()
         val title = detector.getEventTitle(bitmap.toMat())
         if (title != _currentTitle.value) {

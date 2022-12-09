@@ -15,12 +15,12 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.ViewModelStore
 import dagger.hilt.android.AndroidEntryPoint
 import jp.seo.uma.eventchecker.R
-import jp.seo.uma.eventchecker.data.DataRepository
-import jp.seo.uma.eventchecker.data.SettingRepository
+import jp.seo.uma.eventchecker.data.repository.DataRepository
+import jp.seo.uma.eventchecker.data.repository.SettingRepository
+import jp.seo.uma.eventchecker.data.repository.impl.ScreenCapture
 import jp.seo.uma.eventchecker.databinding.OverlayMainBinding
 import jp.seo.uma.eventchecker.img.ImageProcess
 import jp.seo.uma.eventchecker.viewmodel.MainViewModel
-import jp.seo.uma.eventchecker.viewmodel.ScreenCapture
 import javax.inject.Inject
 
 /**
